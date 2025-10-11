@@ -1,0 +1,45 @@
+{
+  "name": "local-mvp-stack",
+  "owner": {
+    "name": "Tamas Bodis",
+    "email": "tamas.bodis@gmail.com"
+  },
+  "metadata": {
+    "description": "Claude Code plugin marketplace for different development stacks",
+    "version": "1.0.0",
+    "homepage": "https://github.com/bodis/agents"
+  },
+  "plugins": [
+    {
+      "name": "mvp-dev-stack",
+      "source": "https://github.com/bodis/agents",
+      "description": "AI-driven MVP development stack with Speckit integration, sequential agent orchestration, and comprehensive testing",
+      "version": "1.0.0",
+      "category": "development",
+      "author": {
+        "name": "Tamas Bodis",
+        "url": "https://github.com/bodis/agents"
+      },
+      "homepage": "https://github.com/wshobson/agents",
+      "repository": "https://github.com/wshobson/agents",
+      "license": "MIT",
+      "keywords": ["mvp", "speckit", "fastapi", "react", "supabase", "orchestration"],
+      "strict": false,
+      "commands": [
+        "./commands/mvp-implement.md",
+        "./commands/mvp-review-plan.md",
+        "./commands/mvp-status.md"
+      ],
+      "agents": [
+        "./agents/mvp-implementation-orchestrator.md",
+        "./agents/backend-python-developer.md",
+        "./agents/frontend-react-developer.md",
+        "./agents/test-engineer.md",
+        "./agents/code-reviewer.md",
+        "./agents/devops-agent.md"
+      ],
+      "hooks": "./hooks/mvp-hooks.json",
+      "mcpServers": "./mcp/mvp-mcp.json"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "hooks": {
+    "pre_edit": [
+      {
+        "name": "check-tests",
+        "description": "Ensure tests exist for backend code",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [[ $FILE == src/*.py ]] && [[ ! -f tests/unit/${FILE#src/} ]]; then echo 'Warning: No test file found for $FILE'; fi"
+        ]
+      }
+    ],
+    "post_edit": [
+      {
+        "name": "format-python",
+        "description": "Auto-format Python code with Black",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [[ $FILE == *.py ]]; then uv run black $FILE; fi"
+        ]
+      },
+      {
+        "name": "format-typescript",
+        "description": "Auto-format TypeScript with Prettier",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [[ $FILE == *.tsx ]] || [[ $FILE == *.ts ]]; then npx prettier --write $FILE; fi"
+        ]
+      }
+    ],
+    "pre_commit": [
+      {
+        "name": "run-tests",
+        "description": "Run tests before commit",
+        "command": "bash",
+        "args": [
+          "-c",
+          "uv run pytest tests/ --maxfail=1 && npm test"
+        ]
+      }
+    ]
+  }
+}
