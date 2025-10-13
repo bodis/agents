@@ -29,6 +29,7 @@
         "./commands/speckit-status.md"
       ],
       "agents": [
+        "./agents/api-developer.md",
         "./agents/backend-developer.md",
         "./agents/code-reviewer.md",
         "./agents/devops-agent.md",
@@ -39,6 +40,23 @@
       ],
       "hooks": "./hooks.json",
       "mcpServers": "./mcp.json"
+    },
+    {
+      "name": "python-generic-stack",
+      "source": "./python-generic-stack",
+      "description": "AI-driven Python coder stack",
+      "version": "0.1.0",
+      "category": "development",
+      "author": {
+        "name": "Tamas Bodis",
+        "url": "https://github.com/bodis/agents"
+      },
+      "license": "MIT",
+      "keywords": ["python", "fastapi"],
+      "strict": true,
+      "agents": [
+        "./agents/backend-developer.md"
+      ]
     }
   ]
 }
