@@ -52,32 +52,32 @@ flowchart TD
     Start([User Request]) --> Orchestrator[implementation-orchestrator<br/>Workflow Conductor]
 
     Orchestrator --> DB[1. supabase-architect<br/>Database Schema]
-    DB --> DBFiles[Creates:<br/>• supabase/migrations/*.sql<br/>• docs/database/README.md]
+    DB --> DBFiles[Creates:<br/>•supabase/migrations/*.sql<br/>•docs/database/README.md]
 
     DBFiles --> API[2. api-designer<br/>API Contracts]
-    API --> APIFiles[Creates:<br/>• docs/openapi.yaml<br/>• REST + SSE specs]
+    API --> APIFiles[Creates:<br/>•docs/openapi.yaml<br/>•REST + SSE specs]
 
     APIFiles --> Backend[3. backend-developer<br/>FastAPI Implementation]
-    Backend --> BackendFiles[Creates:<br/>• backend/src/**/*.py<br/>• Services & endpoints]
+    Backend --> BackendFiles[Creates:<br/>•backend/src/**/*.py<br/>•Services & endpoints]
 
     APIFiles --> Frontend[4. frontend-developer<br/>React/Next.js UI]
-    Frontend --> FrontendFiles[Creates:<br/>• frontend/src/**/*<br/>• Components & hooks]
+    Frontend --> FrontendFiles[Creates:<br/>•frontend/src/**/*<br/>•Components & hooks]
 
     BackendFiles --> Tests[5. test-engineer<br/>Test Suites]
     FrontendFiles --> Tests
-    Tests --> TestFiles[Creates:<br/>• backend/tests/**<br/>• frontend/tests/**<br/>• e2e/**]
+    Tests --> TestFiles[Creates:<br/>•backend/tests/**<br/>•frontend/tests/**<br/>•e2e/**]
 
     TestFiles --> Review[6. code-reviewer<br/>Quality Gate]
     Review --> Complete([Feature Complete])
 
-    style Orchestrator fill:#f9f,stroke:#333,stroke-width:4px
-    style DB fill:#e1f5fe
-    style API fill:#fff3e0
-    style Backend fill:#f3e5f5
-    style Frontend fill:#e8f5e9
-    style Tests fill:#fce4ec
-    style Review fill:#fff9c4
-    style Complete fill:#c8e6c9,stroke:#333,stroke-width:2px
+    style Orchestrator fill:#3b3b3b,stroke-width:4px
+    style DB fill:#3b3b3b,stroke-width:4px
+    style API fill:#3b3b3b,stroke-width:4px
+    style Backend fill:#3b3b3b,stroke-width:4px
+    style Frontend fill:#3b3b3b,stroke-width:4px
+    style Tests fill:#3b3b3b,stroke-width:4px
+    style Review fill:#3b3b3b,stroke-width:4px
+    style Complete fill:#3b3b3b,stroke-width:4px
 ```
 
 **Key Principles:**
