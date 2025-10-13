@@ -1,6 +1,6 @@
 # Claude Code - Hooks Documentation
 
-Complete reference for implementing event-driven automation in Claude Code through hooks.
+Complete reference for implementing event-driven automation in Claude Code, with multi-agent workflow patterns.
 
 ## What are Hooks?
 
@@ -8,10 +8,13 @@ Claude Code hooks are user-defined shell commands that execute at various points
 
 ### Benefits
 - **Deterministic control**: Actions happen automatically without Claude choosing
-- **Notification integration**: Get alerts about tool usage and permission requests
+- **Multi-agent coordination**: Automate workflows between specialized agents
 - **Code quality**: Auto-format code after edits or enforce conventions
+- **Smart execution**: Run only relevant checks based on what changed
 - **Audit trail**: Log all executed commands for security and debugging
 - **Workflow integration**: Connect Claude Code to existing development tools
+
+---
 
 ## Hook Events
 
@@ -28,6 +31,8 @@ Claude Code provides several hook events that run at different points in the wor
 | `PreCompact` | Before context compaction | Save important context, logging |
 | `SessionStart` | When Claude Code session starts | Initialize environment, load configs |
 | `SessionEnd` | When Claude Code session ends | Cleanup, save state, reports |
+
+---
 
 ## Configuration
 
@@ -72,6 +77,136 @@ Hooks are configured in settings files with hierarchical precedence:
 # Configuration is added to settings.json
 ```
 
+---
+
+## Multi-Agent Hooks Pattern
+
+### Key Principle: Agent-Awareness via File Paths
+
+**Hooks are GLOBAL** - they run for ALL agents. You can't directly target specific agents, but you can use **file path conventions** to achieve agent-specific behavior.
+
+**Pattern:**
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'case $FILE in backend/**/*.py) cd backend && uv run black ${FILE#backend/};; frontend/**/*.ts*) cd frontend && npx prettier --write ${FILE#frontend/};; supabase/migrations/*.sql) supabase gen types typescript --local > src/types/database.types.ts;; esac'"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Logic:**
+- `backend/**/*.py` → backend-developer creates these
+- `frontend/**/*.ts*` → frontend-developer creates these  
+- `supabase/migrations/*.sql` → supabase-architect creates these
+- `docs/openapi.yaml` → api-designer creates this
+
+### Available Environment Variables
+
+| Variable | Available In | Description |
+|----------|--------------|-------------|
+| `$FILE` | `PreToolUse`, `PostToolUse` | File being edited (via tool_input.file_path) |
+| `$CLAUDE_PROJECT_DIR` | All | Absolute path to project root |
+| `$CLAUDE_FILE_PATHS` | `PostToolUse` | File paths from tool |
+
+**Note:** Extract `$FILE` from JSON in hooks:
+```bash
+FILE=$(jq -r '.tool_input.file_path // empty' <<< "$STDIN")
+```
+
+---
+
+## Recommended Multi-Agent Hooks
+
+### Complete hooks.json for Multi-Agent Projects
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'FILE=$(jq -r \".tool_input.file_path // empty\"); case $FILE in backend/**/*.py) cd backend && uv run black ${FILE#backend/};; frontend/**/*.ts*) cd frontend && npx prettier --write ${FILE#frontend/};; docs/openapi.yaml) npx @apidevtools/swagger-cli validate $FILE || true;; supabase/migrations/*.sql) supabase gen types typescript --local > src/types/database.types.ts 2>/dev/null || true;; esac'",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json, sys, re; data=json.load(sys.stdin); cmd=data.get('tool_input',{}).get('command',''); patterns=['rm\\\\s+.*-[rf]','sudo\\\\s+rm','chmod\\\\s+777','DROP\\\\s+DATABASE','TRUNCATE']; sys.exit(2 if any(re.search(p, cmd, re.I) for p in patterns) else 0)\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json, sys; data=json.load(sys.stdin); path=data.get('tool_input',{}).get('file_path',''); sys.exit(2 if any(p in path for p in ['.env', 'package-lock.json', '.git/', 'node_modules/', 'uv.lock']) else 0)\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'CHANGED=$(git diff --name-only 2>/dev/null || echo \"\"); if echo \"$CHANGED\" | grep -q \"supabase/migrations/\"; then echo \"⚠️  Migration created - Update docs/database/README.md\"; fi; if echo \"$CHANGED\" | grep -q \"docs/openapi.yaml\"; then echo \"⚠️  OpenAPI updated - backend-developer should implement endpoints\"; fi'",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Smart Test Runner (Pre-Commit Alternative)
+
+For git-based projects, run tests only for changed files:
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'CHANGED=$(git diff --name-only 2>/dev/null || echo \"\"); BACKEND_CHANGED=$(echo \"$CHANGED\" | grep -E \"^backend/.*\\\\.py$|^supabase/migrations/\"); FRONTEND_CHANGED=$(echo \"$CHANGED\" | grep -E \"^frontend/\"); if [ -n \"$BACKEND_CHANGED\" ]; then cd backend && uv run pytest tests/ -x || echo \"⚠️  Backend tests failed\"; fi; if [ -n \"$FRONTEND_CHANGED\" ]; then cd frontend && npm test || echo \"⚠️  Frontend tests failed\"; fi'",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Why this is better:** Only runs Python tests when backend/migrations change, only runs frontend tests when frontend changes. Saves time!
+
+---
+
 ## Hook Event Details
 
 ### UserPromptSubmit
@@ -97,14 +232,7 @@ Fires immediately when user submits a prompt, before Claude processes it.
 }
 ```
 
-**Use Cases**:
-- Validate prompts for security
-- Add project context automatically
-- Block dangerous patterns
-- Log all prompts
-- Enhance prompts with metadata
-
-**Example**:
+**Multi-Agent Use Case**: Add project context automatically
 ```json
 {
   "hooks": {
@@ -113,7 +241,7 @@ Fires immediately when user submits a prompt, before Claude processes it.
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ~/.claude/hooks/validate-prompt.py"
+            "command": "bash -c 'echo \"{\\\"additionalContext\\\":\\\"Project Stack: uv+FastAPI+Next.js+Supabase. Read CLAUDE.md for patterns. Check docs/ for current state.\\\"}\"'"
           }
         ]
       }
@@ -153,14 +281,7 @@ Exit codes:
 - `1` - Error (show error to user)
 - `2` - Block (prevent tool execution)
 
-**Use Cases**:
-- Block dangerous commands
-- Validate file paths
-- Log tool usage
-- Check permissions
-- Security filtering
-
-**Examples**:
+**Multi-Agent Use Cases**:
 
 Block dangerous patterns:
 ```json
@@ -172,7 +293,7 @@ Block dangerous patterns:
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"import json, sys, re; data=json.load(sys.stdin); cmd=data.get('tool_input',{}).get('command',''); patterns=['rm\\\\s+.*-[rf]','sudo\\\\s+rm','chmod\\\\s+777']; sys.exit(2 if any(re.search(p, cmd, re.I) for p in patterns) else 0)\""
+            "command": "python3 -c \"import json, sys, re; data=json.load(sys.stdin); cmd=data.get('tool_input',{}).get('command',''); patterns=['rm\\\\s+.*-[rf]','sudo\\\\s+rm','chmod\\\\s+777','DROP\\\\s+DATABASE']; sys.exit(2 if any(re.search(p, cmd, re.I) for p in patterns) else 0)\""
           }
         ]
       }
@@ -181,7 +302,7 @@ Block dangerous patterns:
 }
 ```
 
-Block sensitive files:
+Block protected files (prevent agents from modifying):
 ```json
 {
   "hooks": {
@@ -191,26 +312,7 @@ Block sensitive files:
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"import json, sys; data=json.load(sys.stdin); path=data.get('tool_input',{}).get('file_path',''); sys.exit(2 if any(p in path for p in ['.env', 'package-lock.json', '.git/']) else 0)\""
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Log commands:
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -r '\"\\(.tool_input.command) - \\(.tool_input.description // \\\"No description\\\")\"' >> ~/.claude/bash-command-log.txt"
+            "command": "python3 -c \"import json, sys; data=json.load(sys.stdin); path=data.get('tool_input',{}).get('file_path',''); protected=['.env','package-lock.json','.git/','uv.lock','node_modules/']; sys.exit(2 if any(p in path for p in protected) else 0)\""
           }
         ]
       }
@@ -240,121 +342,29 @@ Fires after successful tool completion.
 }
 ```
 
-**Use Cases**:
-- Auto-format code after edits
-- Run linters
-- Execute tests
-- Update documentation
-- Notify team members
+**Multi-Agent Workflow Automation**:
 
-**Examples**:
-
-Auto-format TypeScript:
 ```json
 {
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Edit|MultiEdit|Write",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -qE '\\.(ts|tsx)$'; then npx prettier --write \"$file_path\"; fi; }"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Run type checking:
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [
+            "comment": "Format code based on agent workspace",
+            "command": "bash -c 'FILE=$(jq -r \".tool_input.file_path // empty\"); case $FILE in backend/**/*.py) cd backend && uv run black ${FILE#backend/};; frontend/**/*.ts*) cd frontend && npx prettier --write ${FILE#frontend/};; esac'"
+          },
           {
             "type": "command",
-            "command": "if [[ \"$CLAUDE_FILE_PATHS\" =~ \\.(ts|tsx)$ ]]; then npx tsc --noEmit --skipLibCheck \"$CLAUDE_FILE_PATHS\" || echo '⚠️  TypeScript errors detected'; fi"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Format Python with Black:
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [
+            "comment": "Auto-generate types after migration",
+            "command": "bash -c 'FILE=$(jq -r \".tool_input.file_path // empty\"); if [[ $FILE == supabase/migrations/*.sql ]]; then supabase gen types typescript --local > src/types/database.types.ts 2>/dev/null || true; echo \"✅ TypeScript types regenerated\"; fi'"
+          },
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -q '\\.py$'; then black \"$file_path\"; fi; }"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### Notification
-
-Fires when Claude sends notifications or requests permissions.
-
-**Input JSON**:
-```json
-{
-  "hook_event_name": "Notification",
-  "session_id": "abc123...",
-  "message": "Awaiting your input"
-}
-```
-
-**Use Cases**:
-- Custom notification systems
-- Desktop notifications
-- Team alerts (Slack, email)
-- Sound notifications
-
-**Examples**:
-
-macOS notification:
-```json
-{
-  "hooks": {
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "osascript -e 'display notification \"Claude needs input\" with title \"Claude Code\"'"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Linux notification:
-```json
-{
-  "hooks": {
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "notify-send 'Claude Code' 'Awaiting your input'"
+            "comment": "Validate OpenAPI spec",
+            "command": "bash -c 'FILE=$(jq -r \".tool_input.file_path // empty\"); if [[ $FILE == docs/openapi.yaml ]]; then npx @apidevtools/swagger-cli validate $FILE || echo \"⚠️  OpenAPI validation failed\"; fi'"
           }
         ]
       }
@@ -387,25 +397,9 @@ Fires when Claude finishes responding and stops.
 }
 ```
 
-**Use Cases**:
-- Auto-commit changes
-- Update documentation
-- Run tests
-- Generate reports
-- Track usage/costs
+**Multi-Agent Coordination Examples**:
 
-**Examples**:
-
-Auto-commit with prompt message:
-```bash
-#!/bin/bash
-# Extract last prompt from transcript
-prompt=$(jq -r 'select(.role=="user") | .content' ~/.claude/transcript.jsonl | tail -1)
-git add -A
-git commit -m "$prompt"
-```
-
-Notification with sound:
+Agent workflow reminders:
 ```json
 {
   "hooks": {
@@ -414,7 +408,7 @@ Notification with sound:
         "hooks": [
           {
             "type": "command",
-            "command": "osascript -e 'display notification \"Claude has finished!\" with title \"✅ Claude Done\" sound name \"Glass\"'"
+            "command": "bash -c 'CHANGED=$(git diff --name-only 2>/dev/null || echo \"\"); if echo \"$CHANGED\" | grep -q \"supabase/migrations/\"; then echo \"📝 Migration created by supabase-architect\"; echo \"   ➡️  Next: backend-developer implement endpoints\"; echo \"   ➡️  Update: docs/database/README.md\"; fi; if echo \"$CHANGED\" | grep -q \"docs/openapi.yaml\"; then echo \"📝 API spec updated by api-designer\"; echo \"   ➡️  Next: backend-developer implement endpoints\"; fi'"
           }
         ]
       }
@@ -423,14 +417,23 @@ Notification with sound:
 }
 ```
 
-Track usage:
-```bash
-#!/usr/bin/env python3
-import json, sys
-data = json.load(sys.stdin)
-cost = data.get('cost', {})
-with open('~/.claude/usage.log', 'a') as f:
-    f.write(f"Session: {data['session_id']}, Cost: ${cost.get('total_cost_usd', 0):.4f}\n")
+Smart test runner (run only changed):
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'CHANGED=$(git diff --name-only 2>/dev/null); if echo \"$CHANGED\" | grep -qE \"^backend/.*\\\\.py$|^supabase/migrations/\"; then cd backend && uv run pytest tests/ -x; fi; if echo \"$CHANGED\" | grep -qE \"^frontend/\"; then cd frontend && npm test; fi'",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}
 ```
 
 ### SubagentStop
@@ -442,78 +445,42 @@ Fires when subagent tasks complete.
 {
   "hook_event_name": "SubagentStop",
   "session_id": "abc123...",
-  "agent_name": "code-reviewer",
+  "agent_name": "supabase-architect",
   "agent_result": {
     "status": "success",
-    "output": "Review complete"
+    "output": "Migration created: 20250110_add_users.sql"
   }
 }
 ```
 
-**Use Cases**:
-- Multi-agent coordination
-- Result aggregation
-- Logging subagent activity
-- Chain subagent tasks
-
-### PreCompact
-
-Fires before Claude Code runs a compact operation to summarize context.
-
-**Input JSON**:
+**Multi-Agent Coordination**:
 ```json
 {
-  "hook_event_name": "PreCompact",
-  "session_id": "abc123...",
-  "current_tokens": 95000,
-  "target_tokens": 50000
-}
-```
-
-**Use Cases**:
-- Save important context before compaction
-- Log compaction events
-- Notify about context cleanup
-
-### SessionStart
-
-Fires when Claude Code session starts.
-
-**Input JSON**:
-```json
-{
-  "hook_event_name": "SessionStart",
-  "session_id": "abc123...",
-  "workspace": {
-    "project_dir": "/path/to/project"
+  "hooks": {
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'AGENT=$(jq -r \".agent_name // empty\"); if [ \"$AGENT\" = \"supabase-architect\" ]; then echo \"🔄 DB agent finished - regenerating types...\"; supabase gen types typescript --local > src/types/database.types.ts 2>/dev/null || true; fi'"
+          }
+        ]
+      }
+    ]
   }
 }
 ```
 
-**Use Cases**:
-- Initialize environment
-- Load configuration
-- Start services
-- Log session start
+### Other Events
 
-### SessionEnd
+**Notification** - Custom notification systems  
+**PreCompact** - Save context before compaction  
+**SessionStart** - Initialize environment  
+**SessionEnd** - Cleanup and reporting
 
-Fires when Claude Code session ends.
+See official documentation for detailed JSON schemas.
 
-**Input JSON**:
-```json
-{
-  "hook_event_name": "SessionEnd",
-  "session_id": "abc123...",
-  "duration_ms": 1234567
-}
-```
-
-**Use Cases**:
-- Cleanup resources
-- Save session state
-- Generate reports
-- Stop services
+---
 
 ## Matchers
 
@@ -536,100 +503,48 @@ Matchers filter when hooks should fire (only applicable for PreToolUse and PostT
 | `"*"` or `""` | All tools |
 | `"Bash"` | All Bash tool invocations |
 | `"Bash(git *)"` | Bash commands starting with "git" |
-| `"Bash(git log:*)"` | Bash commands matching "git log" |
 | `"mcp__*"` | All MCP tools |
-| `"mcp__github__*"` | All GitHub MCP tools |
 
-### Examples
+### Multi-Agent Matcher Examples
 
 ```json
-// Match file editing tools
+// Match file editing tools (any agent)
 {"matcher": "Edit|MultiEdit|Write"}
 
-// Match all Bash commands
-{"matcher": "Bash"}
+// Match database operations (supabase-architect)
+{"matcher": "Bash(supabase *)"}
 
-// Match git commands only
+// Match git commands (version control)
 {"matcher": "Bash(git *)"}
-
-// Match all MCP tools
-{"matcher": "mcp__*"}
-
-// Match specific MCP server
-{"matcher": "mcp__github__*"}
 ```
 
-## Control Flow
+---
 
-### Exit Codes
+## Agent-Specific Workflow Patterns
 
-| Code | Meaning | Effect |
-|------|---------|--------|
-| `0` | Success | Continue normally |
-| `1` | Error | Show error to user, continue |
-| `2` | Block | Prevent action (PreToolUse only) |
-
-### JSON Output
-
-Hooks can return structured JSON for advanced control:
-
-```json
-{
-  "continue": true,
-  "suppressOutput": false,
-  "stopReason": "string",
-  "decision": "approve|block",
-  "reason": "Explanation"
-}
-```
-
-#### UserPromptSubmit Control
-```json
-{
-  "continue": false,
-  "stopReason": "Prompt blocked",
-  "additionalContext": "Project: MyApp\nContext: Production environment"
-}
-```
-
-#### PreToolUse Control
-```json
-{
-  "decision": "block",
-  "reason": "Dangerous operation detected",
-  "permissionDecision": "deny"
-}
-```
-
-#### Stop Control
-```json
-{
-  "decision": "block",
-  "reason": "Tests failing, cannot complete"
-}
-```
-
-## Environment Variables
-
-### Available Variables
-
-```bash
-$CLAUDE_PROJECT_DIR     # Absolute path to project root
-$CLAUDE_FILE_PATHS      # File paths from tool (PostToolUse)
-```
-
-### Usage
+### Pattern 1: File Path Based Agent Detection
 
 ```json
 {
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-style.sh"
+            "comment": "supabase-architect workflow",
+            "command": "bash -c 'FILE=$(jq -r \".tool_input.file_path // empty\"); if [[ $FILE == supabase/migrations/*.sql ]]; then echo \"=== supabase-architect workflow ===\"; supabase gen types typescript --local > src/types/database.types.ts; echo \"⚠️  Update docs/database/README.md\"; fi'"
+          },
+          {
+            "type": "command",
+            "comment": "api-designer workflow",
+            "command": "bash -c 'FILE=$(jq -r \".tool_input.file_path // empty\"); if [[ $FILE == docs/openapi.yaml ]]; then echo \"=== api-designer workflow ===\"; npx @apidevtools/swagger-cli validate $FILE; echo \"⚠️  backend-developer implement endpoints\"; fi'"
+          },
+          {
+            "type": "command",
+            "comment": "backend-developer workflow",
+            "command": "bash -c 'FILE=$(jq -r \".tool_input.file_path // empty\"); if [[ $FILE == backend/src/**/*.py ]]; then echo \"=== backend-developer workflow ===\"; cd backend && uv run black ${FILE#backend/}; fi'"
           }
         ]
       }
@@ -638,22 +553,19 @@ $CLAUDE_FILE_PATHS      # File paths from tool (PostToolUse)
 }
 ```
 
-## Advanced Patterns
-
-### Multi-Hook Chains
-
-Execute multiple hooks for the same event:
+### Pattern 2: Conditional Execution by File Type
 
 ```json
 {
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Edit",
+        "matcher": "Edit|Write",
         "hooks": [
-          {"type": "command", "command": "prettier --write $file"},
-          {"type": "command", "command": "eslint --fix $file"},
-          {"type": "command", "command": "jest --findRelatedTests $file"}
+          {
+            "type": "command",
+            "command": "bash -c 'FILE=$(jq -r \".tool_input.file_path // empty\"); case $FILE in backend/**/*.py) cd backend && uv run black ${FILE#backend/} && uv run ruff check ${FILE#backend/};; frontend/**/*.ts*) cd frontend && npx prettier --write ${FILE#frontend/} && npx eslint --fix ${FILE#frontend/};; docs/openapi.yaml) npx @apidevtools/swagger-cli validate $FILE;; supabase/migrations/*.sql) supabase gen types typescript --local > src/types/database.types.ts;; *) echo \"No hook for $FILE\";; esac'"
+          }
         ]
       }
     ]
@@ -661,164 +573,196 @@ Execute multiple hooks for the same event:
 }
 ```
 
-### Conditional Execution
+---
 
+## Best Practices for Multi-Agent Workflows
+
+### 1. Keep Hooks Fast
 ```bash
-#!/bin/bash
-# Only run on TypeScript files
-if echo "$file" | grep -qE '\.(ts|tsx)$'; then
-  npx prettier --write "$file"
+# ❌ Slow - blocks workflow
+uv run pytest tests/  # Could take minutes
+
+# ✅ Fast - only run on changed files
+if echo "$CHANGED" | grep -qE '^backend/'; then cd backend && uv run pytest tests/ -x; fi
+```
+
+### 2. Use Silent Failures for Optional Checks
+```bash
+# ✅ Don't block on non-critical errors
+supabase gen types typescript --local > types.ts 2>/dev/null || true
+```
+
+### 3. File Pattern Specificity
+```bash
+# ❌ Too broad - matches any Python file
+if [[ $FILE == *.py ]]; then black $FILE; fi
+
+# ✅ Specific to project structure
+if [[ $FILE == backend/**/*.py ]]; then cd backend && uv run black ${FILE#backend/}; fi
+```
+
+### 4. Provide Agent Workflow Feedback
+```bash
+# ✅ Tell user what happened and what's next
+echo "✅ Migration created by supabase-architect"
+echo "➡️  Next: backend-developer implement endpoints"
+echo "📝 Update: docs/database/README.md"
+```
+
+### 5. Smart Test Execution
+```bash
+# ✅ Only test what changed
+CHANGED=$(git diff --name-only)
+if echo "$CHANGED" | grep -qE '^backend/'; then 
+  cd backend && uv run pytest tests/ -x
 fi
 ```
 
-### Python Hooks
+---
 
-```python
-#!/usr/bin/env python3
-import json, sys, re
+## Security Considerations
 
-# Read hook input
-data = json.load(sys.stdin)
+### Risks in Multi-Agent Workflows
+- Hooks run automatically for ALL agents
+- Agents can trigger multiple hooks in sequence
+- Complex workflows increase attack surface
 
-# Process
-tool_input = data.get('tool_input', {})
-command = tool_input.get('command', '')
+### Mitigations
+- **Block protected files** - .env, lock files, .git/
+- **Block dangerous commands** - rm -rf, DROP DATABASE, etc.
+- **Validate agent outputs** - OpenAPI validation, type checking
+- **Log agent activity** - Track which agent did what
+- **Use PreToolUse blocks** - Prevent dangerous operations before they execute
 
-# Check for dangerous patterns
-dangerous = [
-    r'rm\s+.*-[rf]',
-    r'sudo\s+rm',
-    r'chmod\s+777'
-]
-
-for pattern in dangerous:
-    if re.search(pattern, command, re.IGNORECASE):
-        print(json.dumps({
-            "decision": "block",
-            "reason": f"Blocked dangerous pattern: {pattern}"
-        }))
-        sys.exit(0)
-
-# Allow if safe
-sys.exit(0)
-```
-
-### GitButler Integration
-
-Automatic branch management:
-
+**Example security hook:**
 ```json
 {
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit|MultiEdit|Write",
-        "hooks": [{"type": "command", "command": "but claude pre-tool"}]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|MultiEdit|Write",
-        "hooks": [{"type": "command", "command": "but claude post-tool"}]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [{"type": "command", "command": "but claude stop"}]
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "comment": "Block dangerous operations",
+            "command": "python3 -c \"import json, sys, re; data=json.load(sys.stdin); cmd=data.get('tool_input',{}).get('command',''); dangerous=['rm\\\\s+.*-[rf]','DROP\\\\s+DATABASE','TRUNCATE','chmod\\\\s+777','sudo\\\\s+rm']; sys.exit(2 if any(re.search(p, cmd, re.I) for p in dangerous) else 0)\""
+          }
+        ]
       }
     ]
   }
 }
 ```
 
-## Best Practices
+---
 
-### Security
-- **Always review hooks** before enabling them
-- **Use exit code 2** to block dangerous operations
-- **Validate inputs** in PreToolUse hooks
-- **Never trust user input** without sanitization
-- **Log security events** for audit trail
-
-### Performance
-- **Keep hooks fast** (< 1 second when possible)
-- **Use timeouts** to prevent hanging
-- **Run expensive operations** in background
-- **Cache results** when appropriate
-
-### Reliability
-- **Handle errors gracefully**
-- **Provide informative error messages**
-- **Test hooks thoroughly**
-- **Use logging for debugging**
-
-### Maintainability
-- **Document your hooks**
-- **Use external scripts** for complex logic
-- **Share hooks with team** via project settings
-- **Version control hooks** in .claude/
-
-## Debugging
+## Debugging Multi-Agent Hooks
 
 ### Enable Debug Mode
 ```bash
 claude --debug
-claude -d
+claude -d --verbose
 ```
 
-### Check Hook Execution
+### Log Agent Activity
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'TOOL=$(jq -r \".tool_name // empty\"); FILE=$(jq -r \".tool_input.file_path // empty\"); echo \"[$(date \"+%H:%M:%S\")] Tool: $TOOL, File: $FILE\" >> .claude/activity.log'"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Test Hook Manually
 ```bash
-# Verbose output
-claude --verbose
-
-# MCP and hook debugging
-claude --mcp-debug --verbose
+# Simulate PostToolUse for migration
+echo '{
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "supabase/migrations/20250110_test.sql"
+  }
+}' | bash -c 'FILE=$(jq -r ".tool_input.file_path"); echo "File: $FILE"'
 ```
 
-### Test Hooks Manually
+---
+
+## Common Multi-Agent Hook Issues
+
+### Issue: Hook Runs for Wrong Agent
+**Cause:** File path pattern too broad
+
+**Solution:**
 ```bash
-# Simulate hook input
-echo '{"tool_name":"Bash","tool_input":{"command":"ls"}}' | ./your-hook.sh
+# ❌ Matches any Python file
+if [[ $FILE == *.py ]]
+
+# ✅ Only backend directory
+if [[ $FILE == backend/**/*.py ]]
 ```
 
-### Common Issues
+### Issue: Tests Run Unnecessarily
+**Cause:** Not checking what actually changed
 
-**Hook not firing**:
-- Check matcher pattern
-- Verify file permissions (chmod +x)
-- Review configuration with `/hooks`
-- Check settings precedence
+**Solution:**
+```bash
+# ✅ Only run tests for changed parts
+CHANGED=$(git diff --name-only)
+if echo "$CHANGED" | grep -qE '^backend/'; then
+  cd backend && uv run pytest
+fi
+```
 
-**Hook timeout**:
-- Increase timeout in configuration
-- Move slow operations to background
-- Optimize hook script
+### Issue: Type Generation Fails
+**Cause:** Supabase not running or wrong directory
 
-**Permission denied**:
-- Make script executable
-- Check file paths
-- Verify environment variables
+**Solution:**
+```bash
+# ✅ Silent failure with fallback
+supabase gen types typescript --local > src/types/database.types.ts 2>/dev/null || true
+```
 
-## Security Considerations
+---
 
-### Risks
-- Hooks run automatically with your credentials
-- Malicious hooks can exfiltrate data
-- Hooks can modify files without confirmation
-- Hooks can execute arbitrary commands
+## Summary
 
-### Mitigations
-- **Review all hooks** before enabling
-- **Use version control** for hooks
-- **Limit hook scope** with matchers
-- **Test in isolated environments**
-- **Monitor hook activity** with logging
-- **Use containers** for untrusted hooks
+### Multi-Agent Hooks Enable:
+✅ **Automatic workflows** - supabase-architect creates migration → types auto-generate  
+✅ **Smart execution** - Only run tests for changed parts  
+✅ **Agent coordination** - Reminders about next steps  
+✅ **Quality enforcement** - Auto-format, validate, lint  
+✅ **Security** - Block dangerous operations  
+
+### Key Patterns:
+1. **File path detection** - Infer which agent by file location
+2. **Git-aware conditionals** - Run only on changed files  
+3. **Silent failures** - Don't block on optional operations
+4. **Workflow reminders** - Tell user what's next
+5. **Security blocks** - Prevent dangerous operations
+
+### Recommended Setup:
+Use the complete multi-agent hooks.json provided above for:
+- Format on save (agent-aware)
+- Type generation (supabase-architect)
+- OpenAPI validation (api-designer)
+- Smart test runner (only changed parts)
+- Security blocks (dangerous commands/files)
+- Workflow coordination (agent reminders)
+
+---
 
 ## Related Documentation
-- [Main documentation](README.md)
+- [Agents & Subagents](agents.md)
 - [CLI Reference](cli.md)
 - [Settings Documentation](settings.md)
 - [MCP Documentation](mcp.md)
-- [Hooks Documentation](hook.md)
-- [Plugins Documentation](plugin.md)
