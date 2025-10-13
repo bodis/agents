@@ -48,68 +48,36 @@ The MVP Development Stack consists of:
 ### API-First Agentic Development Flow
 
 ```mermaid
-┌─────────────────────────────────────────────────────────────────┐
-│                   🎯 implementation-orchestrator                 │
-│                        (Workflow Conductor)                      │
-└──────────────────────┬──────────────────────────────────────────┘
-                       │ Coordinates & Delegates
-                       ▼
-        ┌──────────────────────────────────┐
-        │  📊 Sequential Execution Flow    │
-        └──────────────────────────────────┘
-                       │
-    ┌──────────────────┴──────────────────┐
-    ▼                                      ▼
-┌───────────────────┐          ┌───────────────────┐
-│ 1️⃣ Database Layer │          │   📁 Ownership    │
-├───────────────────┤          ├───────────────────┤
-│ supabase-architect│ ───────> │ supabase/         │
-│                   │          │ migrations/*.sql  │
-│ Creates schemas & │          │ docs/database/    │
-│ RLS policies      │          │ README.md         │
-└─────────┬─────────┘          └───────────────────┘
-          │ Schema ready
-          ▼
-┌───────────────────┐          ┌───────────────────┐
-│ 2️⃣ API Design     │          │   📁 Ownership    │
-├───────────────────┤          ├───────────────────┤
-│   api-designer    │ ───────> │ docs/openapi.yaml │
-│                   │          │ docs/paths/*.yaml │
-│ Defines contracts │          │ docs/components/* │
-│ REST + SSE specs  │          │                   │
-└─────────┬─────────┘          └───────────────────┘
-          │ API spec ready
-          ▼
-┌───────────────────┐          ┌───────────────────┐
-│ 3️⃣ Implementation │          │   📁 Ownership    │
-├───────────────────┤          ├───────────────────┤
-│ backend-developer │ ───────> │ backend/src/**    │
-│        +          │          │ frontend/src/**   │
-│frontend-developer │          │ + respective      │
-│                   │          │ package files     │
-│ Build features    │          │                   │
-└─────────┬─────────┘          └───────────────────┘
-          │ Code complete
-          ▼
-┌───────────────────┐          ┌───────────────────┐
-│ 4️⃣ Testing        │          │   📁 Ownership    │
-├───────────────────┤          ├───────────────────┤
-│  test-engineer    │ ───────> │ backend/tests/**  │
-│                   │          │ frontend/tests/** │
-│ Validates behavior│          │ e2e/**            │
-└─────────┬─────────┘          └───────────────────┘
-          │ Tests pass
-          ▼
-┌───────────────────┐          ┌───────────────────┐
-│ 5️⃣ Quality Gate   │          │   📁 Ownership    │
-├───────────────────┤          ├───────────────────┤
-│  code-reviewer    │ ───────> │ READ-ONLY ACCESS  │
-│                   │          │ Reviews all code  │
-│ Final approval    │          │ No modifications  │
-└─────────┬─────────┘          └───────────────────┘
-          │
-          ▼
-    ✅ Feature Complete
+flowchart TD
+    Start([User Request]) --> Orchestrator[implementation-orchestrator<br/>Workflow Conductor]
+
+    Orchestrator --> DB[1. supabase-architect<br/>Database Schema]
+    DB --> DBFiles[Creates:<br/>• supabase/migrations/*.sql<br/>• docs/database/README.md]
+
+    DBFiles --> API[2. api-designer<br/>API Contracts]
+    API --> APIFiles[Creates:<br/>• docs/openapi.yaml<br/>• REST + SSE specs]
+
+    APIFiles --> Backend[3. backend-developer<br/>FastAPI Implementation]
+    Backend --> BackendFiles[Creates:<br/>• backend/src/**/*.py<br/>• Services & endpoints]
+
+    APIFiles --> Frontend[4. frontend-developer<br/>React/Next.js UI]
+    Frontend --> FrontendFiles[Creates:<br/>• frontend/src/**/*<br/>• Components & hooks]
+
+    BackendFiles --> Tests[5. test-engineer<br/>Test Suites]
+    FrontendFiles --> Tests
+    Tests --> TestFiles[Creates:<br/>• backend/tests/**<br/>• frontend/tests/**<br/>• e2e/**]
+
+    TestFiles --> Review[6. code-reviewer<br/>Quality Gate]
+    Review --> Complete([Feature Complete])
+
+    style Orchestrator fill:#f9f,stroke:#333,stroke-width:4px
+    style DB fill:#e1f5fe
+    style API fill:#fff3e0
+    style Backend fill:#f3e5f5
+    style Frontend fill:#e8f5e9
+    style Tests fill:#fce4ec
+    style Review fill:#fff9c4
+    style Complete fill:#c8e6c9,stroke:#333,stroke-width:2px
 ```
 
 **Key Principles:**
