@@ -1,16 +1,5 @@
 {
   "hooks": {
-    "pre_edit": [
-      {
-        "name": "check-tests",
-        "description": "Ensure tests exist for backend code",
-        "command": "bash",
-        "args": [
-          "-c",
-          "if [[ $FILE == src/*.py ]] && [[ ! -f tests/unit/${FILE#src/} ]]; then echo 'Warning: No test file found for $FILE'; fi"
-        ]
-      }
-    ],
     "post_edit": [
       {
         "name": "format-python",
@@ -18,27 +7,78 @@
         "command": "bash",
         "args": [
           "-c",
-          "if [[ $FILE == *.py ]]; then uv run black $FILE; fi"
+          "if [[ $FILE == backend/**/*.py ]]; then cd backend && uv run black ${FILE#backend/}; fi"
         ]
       },
       {
         "name": "format-typescript",
-        "description": "Auto-format TypeScript with Prettier",
+        "description": "Auto-format TypeScript/TSX with Prettier",
         "command": "bash",
         "args": [
           "-c",
-          "if [[ $FILE == *.tsx ]] || [[ $FILE == *.ts ]]; then npx prettier --write $FILE; fi"
+          "if [[ $FILE == frontend/**/*.ts* ]]; then cd frontend && npx prettier --write ${FILE#frontend/}; fi"
+        ]
+      },
+      {
+        "name": "validate-openapi",
+        "description": "Validate OpenAPI spec on change",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [[ $FILE == docs/openapi.yaml ]]; then npx @apidevtools/swagger-cli validate $FILE; fi"
+        ]
+      },
+      {
+        "name": "generate-db-types",
+        "description": "Regenerate TypeScript types after migration changes",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [[ $FILE == supabase/migrations/*.sql ]]; then supabase gen types typescript --local > src/types/database.types.ts 2>/dev/null || true; fi"
         ]
       }
     ],
     "pre_commit": [
       {
-        "name": "run-tests",
-        "description": "Run tests before commit",
+        "name": "smart-test-runner",
+        "description": "Run only relevant tests based on changed files",
         "command": "bash",
         "args": [
           "-c",
-          "uv run pytest tests/ --maxfail=1 && npm test"
+          "CHANGED=$(git diff --cached --name-only); BACKEND_CHANGED=$(echo \"$CHANGED\" | grep -E '^backend/.*\\.py$|^supabase/migrations/'); FRONTEND_CHANGED=$(echo \"$CHANGED\" | grep -E '^frontend/'); if [ -n \"$BACKEND_CHANGED\" ]; then cd backend && uv run pytest tests/ -x; fi; if [ -n \"$FRONTEND_CHANGED\" ]; then cd frontend && npm test; fi; exit 0"
+        ]
+      }
+    ],
+    "pre_tool_use": [
+      {
+        "name": "log-agent-action",
+        "description": "Log which agent is performing actions (debugging)",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo \"[$(date '+%H:%M:%S')] Tool: $TOOL\" >> .claude/agent-activity.log"
+        ]
+      }
+    ],
+    "post_tool_use": [
+      {
+        "name": "check-db-doc-sync",
+        "description": "Remind to update DB docs after migration",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [[ $TOOL == *migration* ]] || [[ $LAST_MODIFIED == supabase/migrations/* ]]; then echo '⚠️  Remember: Update docs/database/README.md'; fi"
+        ]
+      }
+    ],
+    "user_prompt_submit": [
+      {
+        "name": "load-context",
+        "description": "Load project context for agents",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [ ! -f .claude/.context-loaded ]; then echo 'Loading project context...' && touch .claude/.context-loaded; fi"
         ]
       }
     ]

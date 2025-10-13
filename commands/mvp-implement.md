@@ -1,12 +1,12 @@
 ---
 name: implement
-description: Execute Speckit implementation plan using orchestrated agents
+description: Execute Speckit implementation plan using orchestrated agents following API-first workflow
 usage: /implement [feature-number]
 ---
 
 # Implementation Command
 
-Execute a Speckit plan using the implementation-orchestrator agent.
+Execute a Speckit plan using the implementation-orchestrator agent to coordinate our specialized MVP stack agents.
 
 ## Usage
 
@@ -17,36 +17,74 @@ Execute a Speckit plan using the implementation-orchestrator agent.
 This will:
 1. Load specs/003-*/plan.md
 2. Activate implementation-orchestrator
-3. Execute tasks sequentially with appropriate agents
-4. Run tests after each task
-5. Report completion
+3. Execute API-first workflow with specialized agents
+4. Validate each step before proceeding
+5. Report completion with full test coverage
 
-## Arguments
+## Available Agents for MVP Stack
 
-- `feature-number`: The feature number from specs/ directory (e.g., 003)
-- If omitted, will look for most recent feature
+The orchestrator will delegate to these specialized agents:
+- **supabase-architect**: Database schemas, migrations, RLS policies
+- **api-designer**: OpenAPI specifications, REST/SSE endpoints
+- **backend-developer**: FastAPI implementation (Python)
+- **frontend-developer**: React/Next.js UI components
+- **test-engineer**: Test suites (pytest, Playwright)
+- **code-reviewer**: Security and quality review
+- **devops-engineer**: CI/CD and deployment configuration
 
 ## What It Does
 
 ```
-Please activate the implementation-orchestrator agent to execute the implementation plan.
+Please activate the implementation-orchestrator agent to execute the implementation plan following our API-first workflow.
 
 Feature: $ARGUMENTS
 Plan file: specs/$ARGUMENTS-*/plan.md
 
-Follow these steps:
-1. Read and parse the implementation plan
-2. Present task breakdown to me for confirmation
-3. Execute each task sequentially using the appropriate specialized agent
-4. Ensure tests are written and passing after each backend task
-5. Do NOT proceed to next task until current task is complete
-6. Ask for my input if you encounter ambiguity or blockers
-7. Provide clear progress updates
-8. Report completion summary when all tasks done
+Follow the API-First Development Flow:
 
-Remember:
-- Execute tasks ONE AT A TIME (never parallel)
-- Backend tasks MUST have tests
-- Only proceed when tests pass
-- Stop and ask if anything is unclear
+STEP 1: Database Layer
+- If database changes needed, delegate to supabase-architect
+- Creates migrations in supabase/migrations/
+- Updates docs/database/README.md
+
+STEP 2: API Specification
+- Delegate to api-designer
+- Creates/updates docs/openapi.yaml
+- Validates specification with openapi-spec-validator
+
+STEP 3: Backend Implementation
+- Delegate to backend-developer
+- Implements FastAPI endpoints matching OpenAPI spec
+- Reads from docs/openapi.yaml and docs/database/README.md
+
+STEP 4: Frontend Implementation
+- Delegate to frontend-developer
+- Builds React components consuming API endpoints
+- Uses shadcn/ui and follows docs/openapi.yaml
+
+STEP 5: Testing
+- Delegate to test-engineer
+- Backend tests are MANDATORY (>80% coverage)
+- Frontend tests for critical components only
+- E2E tests for critical user flows
+
+STEP 6: Code Review
+- Delegate to code-reviewer
+- Final security and quality check
+- Ensures adherence to specifications
+
+Important Rules:
+- Execute tasks SEQUENTIALLY (never parallel)
+- Each agent owns specific files - respect boundaries
+- Documentation BEFORE implementation
+- Backend tests are MANDATORY
+- Only proceed when current step is complete
+- Ask for input on ambiguity or blockers
+- Provide clear progress updates at each step
+
+Expected Output:
+- Task-by-task execution status
+- Files created/modified by each agent
+- Test results after implementation
+- Final summary with all deliverables
 ```
