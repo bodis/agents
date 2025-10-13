@@ -22,7 +22,7 @@
       },
       "license": "MIT",
       "keywords": ["mvp", "speckit", "fastapi", "react", "supabase", "orchestration"],
-      "strict": false,
+      "strict": true,
       "commands": [
         "./commands/mvp-review-plan.md",
         "./commands/mvp-implement.md",
