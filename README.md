@@ -35,6 +35,57 @@ Then browse and install plugins using:
 
 [documentation about the stack](documentations/mvp-development-plugin.md)
 
+## MVP Stack & Agentic Workflow
+
+### Tech Stack
+The MVP Development Stack consists of:
+- **Backend**: Python/FastAPI with Pydantic v2
+- **Frontend**: React/Next.js with TypeScript & shadcn/ui
+- **Database**: Supabase (PostgreSQL with RLS)
+- **API Design**: OpenAPI 3.0.0 specification-first
+- **Deployment**: GCP (Cloud Run + Cloud Storage)
+
+### API-First Agentic Development Flow
+
+Our agents follow a strict API-first workflow with clear ownership boundaries:
+
+1. **supabase-architect** → Owns database schema (`supabase/migrations/*`, `docs/database/README.md`)
+2. **api-designer** → Owns API contracts (`docs/openapi.yaml`)
+3. **backend-developer** → Owns backend implementation (`backend/src/*`)
+4. **frontend-developer** → Owns UI components (`frontend/src/*`)
+5. **test-engineer** → Owns test suites (`*/tests/*`)
+6. **code-reviewer** → Read-only quality gate
+7. **implementation-orchestrator** → Coordinates the workflow
+
+Each agent has defined file ownership - they can only modify their designated files and read others for reference.
+
+### Example Flow: Adding User Notifications
+
+```
+User: "Add a notification system with real-time updates"
+
+implementation-orchestrator:
+  → Delegates to supabase-architect: "Create notifications table"
+    ✓ Creates migration, updates docs/database/README.md
+
+  → Delegates to api-designer: "Define notification endpoints"
+    ✓ Creates REST + SSE specs in docs/openapi.yaml
+
+  → Delegates to backend-developer: "Implement notification service"
+    ✓ Builds FastAPI endpoints matching OpenAPI spec
+
+  → Delegates to frontend-developer: "Create notification UI"
+    ✓ Builds React components using API endpoints
+
+  → Delegates to test-engineer: "Write tests"
+    ✓ Creates pytest + Playwright tests
+
+  → Delegates to code-reviewer: "Final review"
+    ✓ Security & quality check
+
+Result: Feature complete with proper separation of concerns
+```
+
 ## Agent Categories
 
 ### xxxx
