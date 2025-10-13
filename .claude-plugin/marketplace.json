@@ -20,8 +20,6 @@
         "name": "Tamas Bodis",
         "url": "https://github.com/bodis/agents"
       },
-      "homepage": "https://github.com/bodis/agents/blob/main/documentations/mvp-development-plugin.md",
-      "repository": "https://github.com/bodis/agents",
       "license": "MIT",
       "keywords": ["mvp", "speckit", "fastapi", "react", "supabase", "orchestration"],
       "strict": false,
@@ -31,7 +29,6 @@
         "./commands/speckit-status.md"
       ],
       "agents": [
-        "./agents/api-designer.md",
         "./agents/backend-developer.md",
         "./agents/code-reviewer.md",
         "./agents/devops-agent.md",
