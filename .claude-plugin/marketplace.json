@@ -1,5 +1,5 @@
 {
-  "name": "bodist-mvp-stack",
+  "name": "bodist-stacks-marketplace",
   "owner": {
     "name": "Tamas Bodis",
     "email": "tamas.bodis@gmail.com"
@@ -11,10 +11,10 @@
   },
   "plugins": [
     {
-      "name": "mvp-dev-stack",
-      "source": "./",
+      "name": "supabase-python-react-stack",
+      "source": "./supabase-python-react",
       "description": "AI-driven MVP development stack with Speckit integration, sequential agent orchestration, and comprehensive testing",
-      "version": "1.0.0",
+      "version": "0.1.0",
       "category": "development",
       "author": {
         "name": "Tamas Bodis",
@@ -26,22 +26,22 @@
       "keywords": ["mvp", "speckit", "fastapi", "react", "supabase", "orchestration"],
       "strict": false,
       "commands": [
-        "./commands/speckit/mvp-review-plan.md",
-        "./commands/mvp-subapase-python-react/mvp-implement.md",
-        "./commands/mvp-subapase-python-react/mvp-status.md"
+        "commands/mvp-review-plan.md",
+        "commands/mvp-implement.md",
+        "commands/speckit-status.md"
       ],
       "agents": [
-        "./agents/mvp-subapase-python-react/api-designer.md",
-        "./agents/mvp-subapase-python-react/backend-developer.md",
-        "./agents/mvp-subapase-python-react/code-reviewer.md",
-        "./agents/mvp-subapase-python-react/devops-agent.md",
-        "./agents/mvp-subapase-python-react/frontend-developer.md",
-        "./agents/mvp-subapase-python-react/implementation-orchestrator.md",
-        "./agents/mvp-subapase-python-react/supabase-architect.md",
-        "./agents/mvp-subapase-python-react/test-engineer.md"
+        "agents/api-designer.md",
+        "agents/backend-developer.md",
+        "agents/code-reviewer.md",
+        "agents/devops-agent.md",
+        "agents/frontend-developer.md",
+        "agents/implementation-orchestrator.md",
+        "agents/supabase-architect.md",
+        "agents/test-engineer.md"
       ],
-      "hooks": "./hooks/mvp-subapase-python-react/mvp-hooks.json",
-      "mcpServers": "./mcp/mvp-subapase-python-react/mvp-mcp.json"
+      "hooks": "hooks.json",
+      "mcpServers": "mcp.json"
     }
   ]
 }
