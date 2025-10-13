@@ -47,43 +47,131 @@ The MVP Development Stack consists of:
 
 ### API-First Agentic Development Flow
 
-Our agents follow a strict API-first workflow with clear ownership boundaries:
+```mermaid
+┌─────────────────────────────────────────────────────────────────┐
+│                   🎯 implementation-orchestrator                 │
+│                        (Workflow Conductor)                      │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │ Coordinates & Delegates
+                       ▼
+        ┌──────────────────────────────────┐
+        │  📊 Sequential Execution Flow    │
+        └──────────────────────────────────┘
+                       │
+    ┌──────────────────┴──────────────────┐
+    ▼                                      ▼
+┌───────────────────┐          ┌───────────────────┐
+│ 1️⃣ Database Layer │          │   📁 Ownership    │
+├───────────────────┤          ├───────────────────┤
+│ supabase-architect│ ───────> │ supabase/         │
+│                   │          │ migrations/*.sql  │
+│ Creates schemas & │          │ docs/database/    │
+│ RLS policies      │          │ README.md         │
+└─────────┬─────────┘          └───────────────────┘
+          │ Schema ready
+          ▼
+┌───────────────────┐          ┌───────────────────┐
+│ 2️⃣ API Design     │          │   📁 Ownership    │
+├───────────────────┤          ├───────────────────┤
+│   api-designer    │ ───────> │ docs/openapi.yaml │
+│                   │          │ docs/paths/*.yaml │
+│ Defines contracts │          │ docs/components/* │
+│ REST + SSE specs  │          │                   │
+└─────────┬─────────┘          └───────────────────┘
+          │ API spec ready
+          ▼
+┌───────────────────┐          ┌───────────────────┐
+│ 3️⃣ Implementation │          │   📁 Ownership    │
+├───────────────────┤          ├───────────────────┤
+│ backend-developer │ ───────> │ backend/src/**    │
+│        +          │          │ frontend/src/**   │
+│frontend-developer │          │ + respective      │
+│                   │          │ package files     │
+│ Build features    │          │                   │
+└─────────┬─────────┘          └───────────────────┘
+          │ Code complete
+          ▼
+┌───────────────────┐          ┌───────────────────┐
+│ 4️⃣ Testing        │          │   📁 Ownership    │
+├───────────────────┤          ├───────────────────┤
+│  test-engineer    │ ───────> │ backend/tests/**  │
+│                   │          │ frontend/tests/** │
+│ Validates behavior│          │ e2e/**            │
+└─────────┬─────────┘          └───────────────────┘
+          │ Tests pass
+          ▼
+┌───────────────────┐          ┌───────────────────┐
+│ 5️⃣ Quality Gate   │          │   📁 Ownership    │
+├───────────────────┤          ├───────────────────┤
+│  code-reviewer    │ ───────> │ READ-ONLY ACCESS  │
+│                   │          │ Reviews all code  │
+│ Final approval    │          │ No modifications  │
+└─────────┬─────────┘          └───────────────────┘
+          │
+          ▼
+    ✅ Feature Complete
+```
 
-1. **supabase-architect** → Owns database schema (`supabase/migrations/*`, `docs/database/README.md`)
-2. **api-designer** → Owns API contracts (`docs/openapi.yaml`)
-3. **backend-developer** → Owns backend implementation (`backend/src/*`)
-4. **frontend-developer** → Owns UI components (`frontend/src/*`)
-5. **test-engineer** → Owns test suites (`*/tests/*`)
-6. **code-reviewer** → Read-only quality gate
-7. **implementation-orchestrator** → Coordinates the workflow
+**Key Principles:**
+- **Sequential Flow**: Each step depends on the previous one
+- **Clear Ownership**: Agents can only modify their designated files
+- **API-First**: Database → API Spec → Implementation → Testing
+- **Separation of Concerns**: Each agent has a focused responsibility
 
-Each agent has defined file ownership - they can only modify their designated files and read others for reference.
-
-### Example Flow: Adding User Notifications
+### Example: Building a Notification System
 
 ```
-User: "Add a notification system with real-time updates"
+👤 User Request: "Add notifications with real-time updates"
 
-implementation-orchestrator:
-  → Delegates to supabase-architect: "Create notifications table"
-    ✓ Creates migration, updates docs/database/README.md
-
-  → Delegates to api-designer: "Define notification endpoints"
-    ✓ Creates REST + SSE specs in docs/openapi.yaml
-
-  → Delegates to backend-developer: "Implement notification service"
-    ✓ Builds FastAPI endpoints matching OpenAPI spec
-
-  → Delegates to frontend-developer: "Create notification UI"
-    ✓ Builds React components using API endpoints
-
-  → Delegates to test-engineer: "Write tests"
-    ✓ Creates pytest + Playwright tests
-
-  → Delegates to code-reviewer: "Final review"
-    ✓ Security & quality check
-
-Result: Feature complete with proper separation of concerns
+┌──────────────────────────────────────────────────────┐
+│         🎯 implementation-orchestrator               │
+│              Analyzes & Plans Execution              │
+└────────────────┬─────────────────────────────────────┘
+                 │
+Step 1 ──────────▼─────────────────────────────────────┐
+│ 🗄️ supabase-architect                                │
+│ Task: Create notifications table with RLS            │
+│ ✅ Output: supabase/migrations/001_notifications.sql │
+│           docs/database/README.md updated            │
+└──────────────────────────────────────────────────────┘
+                 │
+Step 2 ──────────▼─────────────────────────────────────┐
+│ 📝 api-designer                                      │
+│ Task: Define REST endpoints + SSE stream             │
+│ ✅ Output: docs/openapi.yaml with:                   │
+│           POST /api/notifications                    │
+│           GET /api/stream/notifications              │
+└──────────────────────────────────────────────────────┘
+                 │
+Step 3 ──────────▼─────────────────────────────────────┐
+│ ⚙️ backend-developer                                 │
+│ Task: Implement FastAPI notification service         │
+│ ✅ Output: backend/src/services/notifications.py     │
+│           backend/src/api/v1/notifications.py        │
+└──────────────────────────────────────────────────────┘
+                 │
+Step 4 ──────────▼─────────────────────────────────────┐
+│ 🎨 frontend-developer                                │
+│ Task: Build notification UI components               │
+│ ✅ Output: frontend/src/components/NotificationBell  │
+│           frontend/src/hooks/useNotifications        │
+└──────────────────────────────────────────────────────┘
+                 │
+Step 5 ──────────▼─────────────────────────────────────┐
+│ 🧪 test-engineer                                     │
+│ Task: Write comprehensive test suite                 │
+│ ✅ Output: backend/tests/test_notifications.py       │
+│           e2e/notifications.spec.ts                  │
+└──────────────────────────────────────────────────────┘
+                 │
+Step 6 ──────────▼─────────────────────────────────────┐
+│ 🔍 code-reviewer                                     │
+│ Task: Security audit & quality check                 │
+│ ✅ Output: Approval with feedback                    │
+└──────────────────────────────────────────────────────┘
+                 │
+                 ▼
+         ✅ Feature Complete
 ```
 
 ## Agent Categories
