@@ -26,22 +26,22 @@
       "keywords": ["mvp", "speckit", "fastapi", "react", "supabase", "orchestration"],
       "strict": false,
       "commands": [
-        "commands/mvp-review-plan.md",
-        "commands/mvp-implement.md",
-        "commands/speckit-status.md"
+        "./commands/mvp-review-plan.md",
+        "./commands/mvp-implement.md",
+        "./commands/speckit-status.md"
       ],
       "agents": [
-        "agents/api-designer.md",
-        "agents/backend-developer.md",
-        "agents/code-reviewer.md",
-        "agents/devops-agent.md",
-        "agents/frontend-developer.md",
-        "agents/implementation-orchestrator.md",
-        "agents/supabase-architect.md",
-        "agents/test-engineer.md"
+        "./agents/api-designer.md",
+        "./agents/backend-developer.md",
+        "./agents/code-reviewer.md",
+        "./agents/devops-agent.md",
+        "./agents/frontend-developer.md",
+        "./agents/implementation-orchestrator.md",
+        "./agents/supabase-architect.md",
+        "./agents/test-engineer.md"
       ],
-      "hooks": "hooks.json",
-      "mcpServers": "mcp.json"
+      "hooks": "./hooks.json",
+      "mcpServers": "./mcp.json"
     }
   ]
 }
