@@ -26,20 +26,22 @@
       "keywords": ["mvp", "speckit", "fastapi", "react", "supabase", "orchestration"],
       "strict": false,
       "commands": [
-        "./commands/mvp-implement.md",
-        "./commands/mvp-review-plan.md",
-        "./commands/mvp-status.md"
+        "./commands/speckit/mvp-review-plan.md",
+        "./commands/mvp-subapase-python-react/mvp-implement.md",
+        "./commands/mvp-subapase-python-react/mvp-status.md"
       ],
       "agents": [
-        "./agents/mvp-implementation-orchestrator.md",
-        "./agents/backend-python-developer.md",
-        "./agents/frontend-react-developer.md",
-        "./agents/test-engineer.md",
-        "./agents/code-reviewer.md",
-        "./agents/devops-agent.md"
+        "./agents/mvp-subapase-python-react/api-designer.md",
+        "./agents/mvp-subapase-python-react/backend-developer.md",
+        "./agents/mvp-subapase-python-react/code-reviewer.md",
+        "./agents/mvp-subapase-python-react/devops-agent.md",
+        "./agents/mvp-subapase-python-react/frontend-developer.md",
+        "./agents/mvp-subapase-python-react/implementation-orchestrator.md",
+        "./agents/mvp-subapase-python-react/supabase-architect.md",
+        "./agents/mvp-subapase-python-react/test-engineer.md"
       ],
-      "hooks": "./hooks/mvp-hooks.json",
-      "mcpServers": "./mcp/mvp-mcp.json"
+      "hooks": "./hooks/mvp-subapase-python-react/mvp-hooks.json",
+      "mcpServers": "./mcp/mvp-subapase-python-react/mvp-mcp.json"
     }
   ]
 }
