@@ -13,50 +13,12 @@
     {
       "name": "supabase-python-react-stack",
       "source": "./supabase-python-react",
-      "description": "AI-driven MVP development stack with Speckit integration, sequential agent orchestration, and comprehensive testing",
-      "version": "0.1.0",
-      "category": "development",
-      "author": {
-        "name": "Tamas Bodis",
-        "url": "https://github.com/bodis/agents"
-      },
-      "license": "MIT",
-      "keywords": ["mvp", "speckit", "fastapi", "react", "supabase", "orchestration"],
-      "strict": true,
-      "commands": [
-        "./commands/mvp-review-plan.md",
-        "./commands/mvp-implement.md",
-        "./commands/speckit-status.md"
-      ],
-      "agents": [
-        "./agents/api-developer.md",
-        "./agents/backend-developer.md",
-        "./agents/code-reviewer.md",
-        "./agents/devops-agent.md",
-        "./agents/frontend-developer.md",
-        "./agents/implementation-orchestrator.md",
-        "./agents/supabase-architect.md",
-        "./agents/test-engineer.md"
-      ],
-      "hooks": "./hooks.json",
-      "mcpServers": "./mcp.json"
+      "description": "AI-driven MVP development stack with Speckit integration, sequential agent orchestration, and comprehensive testing"
     },
     {
       "name": "python-generic-stack",
       "source": "./python-generic-stack",
-      "description": "AI-driven Python coder stack",
-      "version": "0.1.0",
-      "category": "development",
-      "author": {
-        "name": "Tamas Bodis",
-        "url": "https://github.com/bodis/agents"
-      },
-      "license": "MIT",
-      "keywords": ["python", "fastapi"],
-      "strict": true,
-      "agents": [
-        "./agents/backend-developer.md"
-      ]
+      "description": "AI-driven Python coder stack"
     }
   ]
 }

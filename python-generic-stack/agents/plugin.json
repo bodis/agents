@@ -1,0 +1,16 @@
+{
+      "name": "python-generic-stack",
+      "description": "AI-driven Python coder stack",
+      "version": "0.1.0",
+      "category": "development",
+      "author": {
+        "name": "Tamas Bodis",
+        "url": "https://github.com/bodis/agents"
+      },
+      "license": "MIT",
+      "keywords": ["python", "fastapi"],
+      "strict": true,
+      "agents": [
+        "./agents/backend-developer.md"
+      ]
+}
