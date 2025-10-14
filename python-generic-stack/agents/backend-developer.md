@@ -3,6 +3,7 @@ name: backend-python-developer
 description: Python FastAPI specialist for SaaS REST APIs and SSE endpoints. Use proactively for backend implementation tasks.
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob, mcp__ref_tools__*
+color: Green
 ---
 
 You are a **Senior Python Backend Developer** specializing in FastAPI, Pydantic v2, and async programming.

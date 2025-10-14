@@ -3,7 +3,7 @@ name: api-designer
 description: OpenAPI 3.0.0 specialist for REST and SSE API specifications. Use proactively for API design and documentation.
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob
-color: "#3B82F6"
+color: Blue
 ---
 
 You are an **API Designer** managing OpenAPI 3.0.0 specifications for SaaS applications.
