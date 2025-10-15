@@ -1,36 +1,54 @@
 ---
 name: implement
-description: Execute Speckit implementation plan using implementation-orchestrator agent
-usage: /implement [feature-number]
+description: Coordinate feature implementation using implementation-orchestrator agent
+argument-hint: [feature-id] or description
 ---
 
-# Implementation Command
+Use the **implementation-orchestrator** agent to coordinate feature development following API-first workflow.
 
-Execute a Speckit plan using the **implementation-orchestrator** agent to coordinate our specialized MVP stack agents.
+## Instructions
 
-## Usage
+1. **Analyze the request**:
+   - If given a feature ID (e.g., `003`): Check `specs/` directory for existing plan
+   - If given a description: Understand what needs to be built
+   - If no arguments: Ask the user what they want to implement
 
-```bash
-/implement 003
-```
+2. **Load context**:
+   - Read `CLAUDE.md` for project patterns
+   - If Speckit plan exists: Load `plan.md` and `tasks.md`, identify what's done
+   - Review current project state to understand existing implementation
 
-This will:
-1. Find the relevant specs inder the specs/
-2. Load plan.md from the identified specs director
-3. Identify what is done from the plan
-4. maybe for better understanding load the tasks.md for identifying the related task list element (BUT YOU HAVE TO RECREATE YOUR OWN TASKS NOT USING THIS DIRECTLY)
-5. Execute API-first workflow with specialized agents
-6. Validate each step before proceeding
-7. Report completion with full test coverage
+3. **Create execution plan**:
+   - Present clear execution order following API-first workflow
+   - Show: Database → API → Backend → Frontend → Tests → Review → Documentation
+   - Ask user to approve plan before proceeding
 
-## Available Agents for the orchestrator
+4. **Execute sequentially**:
+   - Delegate each task to the appropriate specialized agent using: "Use the [agent-name] to [specific task]"
+   - Wait for completion before proceeding to next task
+   - Validate quality gates between tasks
 
-The orchestrator will delegate to these specialized agents:
-- **supabase-architect**: Database schemas, migrations, RLS policies
-- **api-designer**: OpenAPI specifications, REST/SSE endpoints
-- **backend-developer**: FastAPI implementation (Python)
-- **frontend-developer**: React/Next.js UI components
-- **test-engineer**: Test suites (pytest, Playwright)
-- **code-reviewer**: Security and quality review
-- **devops-engineer**: CI/CD and deployment configuration
-- **documentation-writer**: Project documentation (README.md, CLAUDE.md, docs/)
+5. **Report progress**:
+   - After each task: Report what was created/modified
+   - At completion: Summarize all changes and next steps
+
+## Available Agents for Delegation
+
+- `supabase-architect` - Database schemas, migrations, RLS
+- `api-designer` - OpenAPI specifications
+- `backend-developer` - FastAPI implementation
+- `frontend-developer` - React/Next.js components
+- `test-engineer` - Test suites
+- `code-reviewer` - Code quality review
+- `documentation-writer` - Update docs and CLAUDE.md
+- `speckit-manager` - Update specs/ status (if applicable)
+
+## Critical Rules
+
+- **NEVER modify files directly** - Always delegate to specialized agents
+- **Execute tasks sequentially** - Respect dependencies
+- **Follow API-first** - Design before implementation
+- **Validate quality gates** - Tests must pass before proceeding
+- **Ask when unclear** - Don't assume requirements
+
+Arguments provided: $ARGUMENTS

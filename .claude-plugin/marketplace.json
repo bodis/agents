@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Claude Code plugin marketplace for different development stacks",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "homepage": "https://github.com/bodis/agents"
   },
   "plugins": [
