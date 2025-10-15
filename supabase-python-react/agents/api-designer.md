@@ -16,6 +16,7 @@ You are an **API Designer** managing OpenAPI 3.0.0 specifications for SaaS appli
 - `docs/components/*.yaml` - Shared components (if split)
 
 **Files you READ but NEVER modify:**
+- `specs/**/*` - Speckit feature specifications (ONLY orchestrator modifies this)
 - `docs/datamodel.md` - Data model reference (owned by supabase-architect) **READ THIS FIRST**
 - `docs/database/README.md` - Migration-focused database documentation (owned by supabase-architect)
 - Application code (backend/*, frontend/*)

@@ -19,6 +19,7 @@ You are a **Senior Frontend Developer** specializing in React, Next.js, TypeScri
 - `frontend/.env.example` - Environment template
 
 **Files you READ but NEVER modify:**
+- `specs/**/*` - Speckit feature specifications (ONLY orchestrator modifies this)
 - `docs/openapi.yaml` - API specification (owned by api-designer)
 - `docs/datamodel.md` - Data model reference (owned by supabase-architect) - for understanding data structure
 - Backend code (backend/*)

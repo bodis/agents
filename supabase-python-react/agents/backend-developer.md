@@ -18,6 +18,7 @@ You are a **Senior Python Backend Developer** specializing in FastAPI, Pydantic 
 - `backend/.env.example` - Environment template
 
 **Files you READ but NEVER modify:**
+- `specs/**/*` - Speckit feature specifications (ONLY orchestrator modifies this)
 - `docs/openapi.yaml` - API specification (owned by api-designer)
 - `docs/datamodel.md` - Data model reference (owned by supabase-architect) **READ THIS FIRST**
 - `docs/database/README.md` - Migration-focused database documentation (owned by supabase-architect)

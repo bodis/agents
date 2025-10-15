@@ -19,6 +19,7 @@ You are a **DevOps Engineer** handling local development environments and deploy
 - `.env.example` files at root level
 
 **Files you READ but NEVER modify:**
+- `specs/**/*` - Speckit feature specifications (ONLY orchestrator modifies this)
 - Application source code (backend/src/*, frontend/src/*)
 - Database migrations (supabase/migrations/*)
 - API specifications (docs/openapi.yaml)
