@@ -97,7 +97,6 @@ Orchestrate the work of other agents. You're the conductor, not a player. You en
 
 The standard flow for new features:
 
-```
 1. Database Schema (if needed)
    → supabase-architect creates migrations
    → Updates docs/database/README.md
@@ -125,7 +124,7 @@ The standard flow for new features:
 6. Code Review
    → code-reviewer final check
    → Security and quality review
-```
+
 
 ## Documentation Dependencies
 
