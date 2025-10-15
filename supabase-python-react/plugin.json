@@ -16,10 +16,11 @@
     "./commands/speckit-status.md"
     ],
     "agents": [
-    "./agents/api-developer.md",
+    "./agents/api-designer.md",
     "./agents/backend-developer.md",
     "./agents/code-reviewer.md",
-    "./agents/devops-agent.md",
+    "./agents/devops-engineer.md",
+    "./agents/documentation-writer.md",
     "./agents/frontend-developer.md",
     "./agents/implementation-orchestrator.md",
     "./agents/supabase-architect.md",

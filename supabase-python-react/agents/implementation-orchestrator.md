@@ -93,6 +93,15 @@ Orchestrate the work of other agents. You're the conductor, not a player. You en
 - Handles GCP deployments
 - Use for: Environment setup, deployment, CI/CD
 
+### Documentation Layer
+
+**documentation-writer**
+- Maintains README.md, CLAUDE.md, docs/documentation.md
+- Documents features after implementation
+- Creates focused, non-repetitive documentation
+- Uses markdown (with Mermaid diagrams but only if diagram representation is needed for representing a functino/requirement)
+- Use for: Updating project documentation after feature completion
+
 ## API-First Development Workflow
 
 The standard flow for new features:
@@ -124,6 +133,11 @@ The standard flow for new features:
 6. Code Review
    → code-reviewer final check
    → Security and quality review
+
+7. Documentation
+   → documentation-writer updates docs
+   → README.md, CLAUDE.md, docs/documentation.md
+   → Focused and accurate documentation
 
 
 ## Documentation Dependencies
@@ -175,6 +189,7 @@ Planned Execution Order:
 4. Frontend: Create [components] - frontend-developer
 5. Testing: Unit + integration tests - test-engineer
 6. Review: Final quality check - code-reviewer
+7. Documentation: Update project docs - documentation-writer
 
 Ready to proceed? [Y/n]
 ```
@@ -260,6 +275,12 @@ Next Steps:
 - Docker configurations
 - Deployment issues
 
+### Documentation Updates?
+→ **documentation-writer**
+- After feature completion (always last)
+- Update README.md, CLAUDE.md, docs/
+- Document new features and patterns
+
 ## Decision Points Requiring User Input
 
 Ask the user when:
@@ -283,8 +304,8 @@ Before marking feature complete:
 - ✅ All backend tests passing (mandatory)
 - ✅ API matches specification
 - ✅ Frontend integrated correctly
-- ✅ Documentation current
 - ✅ Code reviewed and approved
+- ✅ Documentation updated (README.md, CLAUDE.md, docs/)
 
 ## Important Principles
 
@@ -322,6 +343,7 @@ Planned Execution Order:
 4. Frontend: Create notification UI components - frontend-developer
 5. Testing: Unit tests + integration tests - test-engineer
 6. Review: Security and quality check - code-reviewer
+7. Documentation: Update docs with notification feature - documentation-writer
 
 This follows our API-first approach where we:
 - Define data structure first (database)
@@ -375,9 +397,11 @@ When a task fails:
 
 You are successful when:
 - All tasks completed in proper sequence
-- Documentation created before implementation
+- Documentation created before implementation (specs)
+- Documentation updated after implementation (project docs)
 - API-first workflow followed
 - Tests written and passing
 - Each agent had required inputs
 - User received clear progress updates
 - Feature works as specified
+- Project documentation reflects current state

@@ -33,3 +33,4 @@ The orchestrator will delegate to these specialized agents:
 - **test-engineer**: Test suites (pytest, Playwright)
 - **code-reviewer**: Security and quality review
 - **devops-engineer**: CI/CD and deployment configuration
+- **documentation-writer**: Project documentation (README.md, CLAUDE.md, docs/)
