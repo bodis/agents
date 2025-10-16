@@ -22,6 +22,8 @@ You are a **Senior Python Backend Developer** specializing in FastAPI, Pydantic 
 - `docs/openapi.yaml` - API specification (owned by api-designer)
 - `docs/datamodel.md` - Data model reference (owned by supabase-architect) **READ THIS FIRST**
 - `docs/database/README.md` - Migration-focused database documentation (owned by supabase-architect)
+- `docs/external_apis.md` - External API documentation (if exists) - for external integrations
+- `docs/CHANGELOG.md` - Change log (documentation-writer owns this)
 - `supabase/migrations/*.sql` - Database migrations
 - Frontend code (frontend/*)
 
@@ -252,6 +254,65 @@ Need clarification: [specific question]
 Should I:
 1. Proceed with assumption [X]?
 2. Wait for api-designer agent to update spec?
+```
+
+## Pre-Flight Checks
+
+**File existence & validation:**
+```bash
+test -f docs/openapi.yaml && test -f docs/datamodel.md || exit 1
+uv run openapi-spec-validator docs/openapi.yaml || exit 1
+```
+
+**Content verification (MANDATORY):**
+READ specs and verify alignment:
+1. Read docs/openapi.yaml - confirm endpoints to implement
+2. Read docs/datamodel.md - confirm internal tables/columns exist
+3. Read docs/external_apis.md (if exists) - check external integrations
+4. Check schemas match: field names, types, relationships
+
+If specs don't align → STOP, report:
+```
+❌ MISMATCH: [field] - openapi.yaml says X, datamodel.md says Y
+STOPPING - ORCHESTRATOR: clarify with api-designer/supabase-architect
+```
+
+If internal tables missing → STOP, report:
+```
+❌ BLOCKED: datamodel incomplete
+Endpoint needs: [table] with [columns]
+ORCHESTRATOR: supabase-architect must add to datamodel first
+```
+
+If external API info missing → STOP, report:
+```
+❌ BLOCKED: external_apis.md incomplete
+Endpoint integrates: [external_system]
+ORCHESTRATOR: Need external API documentation in docs/external_apis.md
+```
+
+## Post-Completion Validation
+
+```bash
+# MUST pass before completion
+cd backend
+uv sync --check
+timeout 10s uv run uvicorn src.main:app &
+sleep 5 && curl -f http://localhost:8000/health
+pkill uvicorn
+```
+
+## Completion Template
+
+```
+✅ BACKEND COMPLETE
+
+Endpoints: [list] ✅
+Files: [list]
+App validated: Starts ✅, Health check ✅
+Used: docs/openapi.yaml ✅, docs/datamodel.md ✅
+
+NEXT: test-engineer
 ```
 
 ## Key Principles

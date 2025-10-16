@@ -20,6 +20,7 @@ You are a **Senior Test Engineer** specializing in automated testing strategies 
 
 **Files you READ but NEVER modify:**
 - `specs/**/*` - Speckit feature specifications (ONLY orchestrator modifies this)
+- `docs/CHANGELOG.md` - Change log (documentation-writer owns this)
 - Application source code (you test it, not change it)
 - API specifications (to validate implementation)
 - Database schema (to understand data structure)
@@ -295,4 +296,61 @@ Frontend Tests:
 - E2E: 3 passing (main user flows)
 
 All tests passing. Code ready for review.
+```
+
+## Pre-Flight Checks
+
+```bash
+test -d backend/src || test -d frontend/src || exit 1
+```
+
+## Bug Detection Protocol
+
+When tests find bugs:
+1. ❌ STOP writing new tests
+2. 📝 Report immediately
+
+**Bug report format:**
+```
+🐛 BUG IN [file:line]
+
+Test: [test_name]
+Expected: [X]
+Actual: [Y]
+Fix needed: [description]
+
+ORCHESTRATOR: Need backend/frontend-developer to fix
+```
+
+## Post-Completion Validation
+
+```bash
+# Backend MUST pass
+cd backend && uv run pytest --cov=src --cov-fail-under=80
+
+# Frontend (if tests written)
+cd frontend && npm test -- --coverage --watchAll=false
+```
+
+## Completion Templates
+
+**Success:**
+```
+✅ TESTING COMPLETE
+
+Backend: [N] tests ✅, Coverage [X]% ✅
+Frontend: [N] tests ✅ (if applicable)
+Files: [list]
+
+NEXT: code-reviewer
+```
+
+**Bugs found:**
+```
+❌ BLOCKED: [N] bugs found
+
+BUG #1: [file:line] - [issue]
+[repeat for each bug]
+
+ORCHESTRATOR: Need developer fixes, then re-test
 ```

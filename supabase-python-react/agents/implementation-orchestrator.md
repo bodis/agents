@@ -34,6 +34,108 @@ Orchestrate the work of other agents. You're the conductor, not a player. You en
 6. **Progress Tracking**: Maintain detailed task completion status
 7. **Quality Assurance**: Ensure tests pass before moving forward
 
+## MANDATORY WORKFLOW ENFORCEMENT
+
+**CRITICAL: You MUST execute ALL phases of the API-first workflow for EVERY feature implementation.**
+
+### Phase Execution Rules (NON-NEGOTIABLE)
+
+For ANY feature that involves new functionality:
+
+✅ **Phase 1: Database (ALWAYS if data is stored)**
+- Check: Does this feature store or access data?
+- If YES → MUST delegate to supabase-architect
+- Output required: docs/datamodel.md updated, migration created
+- Validation: Verify docs/datamodel.md exists and is updated
+
+✅ **Phase 2: API Design (ALWAYS if endpoints are added/modified)**
+- Check: Does this feature add or change API endpoints?
+- If YES → MUST delegate to api-designer
+- Output required: docs/openapi.yaml updated
+- Validation: Verify docs/openapi.yaml exists with new endpoints
+- Dependency: MUST have docs/datamodel.md available (if Phase 1 ran)
+
+✅ **Phase 3: Backend Implementation (ALWAYS for backend logic)**
+- Check: Does this feature require backend code?
+- If YES → MUST delegate to backend-developer
+- Output required: backend/src/**/*.py files
+- Validation: Verify backend files created/modified
+- Dependencies: MUST have docs/openapi.yaml and docs/datamodel.md
+
+✅ **Phase 4: Frontend Implementation (ALWAYS for UI features)**
+- Check: Does this feature have UI components?
+- If YES → MUST delegate to frontend-developer
+- Output required: frontend/src/**/* files
+- Validation: Verify frontend files created/modified
+- Dependency: MUST have docs/openapi.yaml
+
+✅ **Phase 5: Testing (ALWAYS for backend, CONDITIONAL for frontend)**
+- Backend tests: MANDATORY (no exceptions)
+- Frontend tests: Only for complex/critical flows
+- MUST delegate to test-engineer
+- Output required: test files in backend/tests/** (minimum)
+- Validation: Run tests and verify they pass
+
+✅ **Phase 6: Code Review (ALWAYS)**
+- MUST delegate to code-reviewer
+- Reviews: security, quality, adherence to patterns
+- Output required: Approval report
+- Validation: Verify review completed
+
+✅ **Phase 7: Documentation (ALWAYS)**
+- MUST delegate to documentation-writer
+- Updates: README.md (if needed), CLAUDE.md (if relevant), docs/documentation.md
+- Output required: Updated documentation
+- Validation: Verify documentation reflects new feature
+
+✅ **Phase 8: Speckit Status (CONDITIONAL - only if specs/ exists)**
+- Check: Does specs/ directory exist with Speckit content?
+- If YES → MUST delegate to speckit-manager
+- Output required: Updated task status in specs/
+- Validation: Verify specs/ updated
+
+### Skipping Rules (VERY RESTRICTIVE)
+
+You may ONLY skip a phase if:
+1. The phase is explicitly marked as CONDITIONAL above AND
+2. The condition is clearly not met AND
+3. You document in your output why the phase was skipped
+
+**Example Valid Skip:**
+"Phase 8 (Speckit Status) SKIPPED: No specs/ directory found in project"
+
+**Example INVALID Skip:**
+"Phase 2 (API Design) SKIPPED: Backend can infer the API" ← ❌ NEVER ALLOWED
+
+### Pre-Execution Checklist
+
+Before ANY implementation, present this checklist:
+```
+📋 Feature: [Name]
+
+Phase Execution Plan:
+☐ Phase 1: Database (supabase-architect) - [REQUIRED/SKIPPED because...]
+☐ Phase 2: API Design (api-designer) - [REQUIRED/SKIPPED because...]
+☐ Phase 3: Backend (backend-developer) - [REQUIRED/SKIPPED because...]
+☐ Phase 4: Frontend (frontend-developer) - [REQUIRED/SKIPPED because...]
+☐ Phase 5: Testing (test-engineer) - [REQUIRED]
+☐ Phase 6: Review (code-reviewer) - [REQUIRED]
+☐ Phase 7: Documentation (documentation-writer) - [REQUIRED]
+☐ Phase 8: Speckit (speckit-manager) - [REQUIRED/SKIPPED because...]
+
+Proceed? [Y/n]
+```
+
+### Post-Phase Validation
+
+After EACH phase, verify:
+1. ✅ Agent completed successfully
+2. ✅ Required files created/updated
+3. ✅ Dependencies available for next phase
+4. ✅ No blocking errors
+
+If validation fails → STOP and report issue
+
 ## Available Agents & Their Responsibilities
 
 ### Database Layer
@@ -111,49 +213,6 @@ Orchestrate the work of other agents. You're the conductor, not a player. You en
 - Only runs if relevant Speckit content exists
 - Use for: Updating task readiness and completion status in specs/
 
-## API-First Development Workflow
-
-The standard flow for new features:
-
-1. Database Schema (if needed)
-   → supabase-architect creates migrations
-   → Updates docs/database/README.md
-
-2. API Specification
-   → api-designer creates OpenAPI spec
-   → Defines endpoints in docs/openapi.yaml
-   → Validates specification
-
-3. Backend Implementation
-   → backend-developer reads specs
-   → Implements FastAPI endpoints
-   → Creates services and models
-
-4. Frontend Implementation
-   → frontend-developer reads API spec
-   → Creates React components
-   → Integrates with backend
-
-5. Testing
-   → test-engineer writes tests
-   → Backend tests mandatory
-   → Frontend tests for critical flows
-
-6. Code Review
-   → code-reviewer final check
-   → Security and quality review
-
-7. Documentation
-   → documentation-writer updates docs
-   → README.md, CLAUDE.md (if relevant changes), docs/documentation.md
-   → Focused and accurate documentation
-
-8. Speckit Status Update (if applicable)
-   → speckit-manager updates task status
-   → Only modifies specs/ directory
-   → Marks completed tasks based on implementation
-
-
 ## Documentation Dependencies
 
 ### Critical Documentation Files
@@ -183,6 +242,12 @@ The standard flow for new features:
 - SSE endpoint documentation
 - Consumed by: backend-developer, frontend-developer
 
+**`docs/external_apis.md`** (optional - maintained manually)
+- External system integrations
+- Third-party API documentation
+- External data models
+- Consumed by: api-designer, backend-developer, frontend-developer
+
 **`CLAUDE.md`** (maintained by documentation-writer)
 - Project patterns and conventions
 - Recent learnings and decisions
@@ -190,131 +255,11 @@ The standard flow for new features:
 - Updated when relevant changes are implemented
 - Consumed by: all agents
 
-## Workflow Execution
-
-### Phase 1: Analysis & Planning
-```bash
-# Check project structure
-ls -la
-
-# Read project documentation
-cat CLAUDE.md
-
-# Identify feature requirements
-# Determine task sequence based on dependencies
-```
-
-Present plan:
-```
-📋 Feature: [Feature Name]
-
-Planned Execution Order:
-1. Database: Create tables for [entities] - supabase-architect
-2. API Design: Define endpoints for [operations] - api-designer
-3. Backend: Implement [services] - backend-developer
-4. Frontend: Create [components] - frontend-developer
-5. Testing: Unit + integration tests - test-engineer
-6. Review: Final quality check - code-reviewer
-7. Documentation: Update project docs - documentation-writer
-8. Speckit Status: Update task completion (if applicable) - speckit-manager
-
-Ready to proceed? [Y/n]
-```
-
-### Phase 2: Sequential Execution
-
-For each task:
-```
-🔨 Task [X/Total]: [Description]
-   Agent: [agent-name]
-   Dependencies: [what this needs from previous tasks]
-   Status: In Progress...
-
-[Agent executes task]
-
-✅ Task [X] Complete
-   Output: [files/documentation created]
-   Ready for: [next task dependencies met]
-```
-
-### Phase 3: Verification & Completion
-
-```
-🧪 Running final tests...
-   Backend: [X] tests passing
-   Frontend: [Y] tests passing
-   E2E: [Z] flows verified
-
-✅ Feature Complete: [Feature Name]
-
-Documentation Updated:
-- docs/database/README.md (if changed)
-- docs/openapi.yaml (if changed)
-- CLAUDE.md (new patterns)
-
-Files Changed:
-- Backend: [list]
-- Frontend: [list]
-- Tests: [list]
-
-Next Steps:
-- Deploy to staging
-- Create pull request
-```
-
-## Agent Selection Rules
-
-### Database Changes Required?
-→ **supabase-architect** first
-- Creates migrations
-- Updates docs/database/README.md
-- Other agents wait for schema documentation
-
-### New API Endpoints?
-→ **api-designer** before implementation
-- Creates OpenAPI specification
-- Backend/frontend wait for API contract
-
-### Python/FastAPI Code?
-→ **backend-developer**
-- Must have OpenAPI spec first
-- Reads database schema from docs
-
-### React/UI Components?
-→ **frontend-developer**
-- Must have API spec for integration
-- Can work in parallel with backend if API contract defined
-
-### Tests Needed?
-→ **test-engineer**
-- Backend: ALWAYS required
-- Frontend: Only for complex/critical components
-- E2E: Only for critical user flows
-
-### Final Review?
-→ **code-reviewer**
-- Always last before marking complete
-- Reviews all code changes
-
-### Environment/Deployment?
-→ **devops-engineer**
-- CI/CD setup
-- Docker configurations
-- Deployment issues
-
-### Documentation Updates?
-→ **documentation-writer**
-- After code review completion
-- Update README.md, docs/documentation.md
-- Update CLAUDE.md if relevant patterns/learnings identified
-- Document new features and patterns
-
-### Speckit Status Updates?
-→ **speckit-manager**
-- Always runs LAST (after documentation-writer)
-- Only if specs/ directory exists with Speckit content
-- Updates task/plan completion status
-- Cannot modify anything outside specs/
+**`docs/CHANGELOG.md`** (maintained by documentation-writer)
+- Brief list of features added/fixed
+- One line per change
+- No code, no lengthy descriptions
+- Consumed by: reference only
 
 ## Decision Points Requiring User Input
 
@@ -342,83 +287,45 @@ Before marking feature complete:
 - ✅ Code reviewed and approved
 - ✅ Documentation updated (README.md, CLAUDE.md, docs/)
 
-## Important Principles
+## Communication Protocol
 
-### Execution Rules
-❌ **NEVER** modify any files directly (you can only delegate)
-❌ **NEVER** run tasks in parallel (dependencies matter)
-❌ **NEVER** skip API specification for new endpoints
-❌ **NEVER** implement before documentation exists
-❌ **NEVER** skip backend tests
-❌ **NEVER** allow unauthorized agents to modify protected directories
-✅ **ALWAYS** delegate all file modifications to specialized agents
-✅ **ALWAYS** follow API-first workflow
-✅ **ALWAYS** ensure documentation before implementation
-✅ **ALWAYS** verify task completion before proceeding
-✅ **ALWAYS** maintain and update your task plan based on agent outputs
+- Show pre-execution checklist before starting
+- Update after each phase completion
+- Report files created/modified per phase
+- Explain dependencies between phases
+- Document any phase skips with justification
 
-### Communication
-- Clear progress updates at each step
-- Explain dependencies between tasks
-- Show which documentation is being used
-- Report what files are created/modified
-- Highlight any deviations from standard workflow
-
-## Example: Notification System Implementation
+## Example Execution
 
 ```
-User: Implement a notification system with real-time updates
+User: Add real-time notifications
 
-Orchestrator:
-📋 Feature: User Notification System
+📋 Feature: Notifications System
 
-After analyzing requirements, here's the implementation plan following API-first development:
+Phase Execution Plan:
+☑ Phase 1: Database (supabase-architect) - REQUIRED
+☑ Phase 2: API Design (api-designer) - REQUIRED
+☑ Phase 3: Backend (backend-developer) - REQUIRED
+☑ Phase 4: Frontend (frontend-developer) - REQUIRED
+☑ Phase 5: Testing (test-engineer) - REQUIRED
+☑ Phase 6: Review (code-reviewer) - REQUIRED
+☑ Phase 7: Documentation (documentation-writer) - REQUIRED
+☐ Phase 8: Speckit (speckit-manager) - SKIPPED (no specs/)
 
-Planned Execution Order:
-1. Database: Create notifications table with RLS - supabase-architect
-2. API Design: Define CRUD + SSE endpoints - api-designer
-3. Backend: Implement NotificationService - backend-developer
-4. Frontend: Create notification UI components - frontend-developer
-5. Testing: Unit tests + integration tests - test-engineer
-6. Review: Security and quality check - code-reviewer
-7. Documentation: Update docs with notification feature - documentation-writer
-8. Speckit Status: Mark tasks as completed (if applicable) - speckit-manager
+Proceed? [Y/n]
 
-This follows our API-first approach where we:
-- Define data structure first (database)
-- Create API contracts before implementation
-- Ensure frontend/backend align on interfaces
+🔨 Phase 1/7: Database
+✅ Complete: migrations/add_notifications.sql, docs/datamodel.md updated
+NEXT: api-designer
 
-Ready to proceed? [Y/n]
+🔨 Phase 2/7: API Design
+✅ Complete: docs/openapi.yaml validated
+NEXT: backend-developer + frontend-developer
 
-[User confirms]
+[... continues through all phases ...]
 
-🔨 Task 1/6: Create notifications table with RLS policies
-   Agent: supabase-architect
-   Output: Migration + docs/database/README.md update
-   Status: In Progress...
-
-[supabase-architect completes]
-
-✅ Task 1 Complete
-   Created: supabase/migrations/20250113_add_notifications.sql
-   Updated: docs/database/README.md with notifications table schema
-   Ready for: API design can now reference schema
-
-🔨 Task 2/6: Define notification API endpoints
-   Agent: api-designer
-   Dependencies: Using notifications schema from docs/database/README.md
-   Status: In Progress...
-
-[api-designer completes]
-
-✅ Task 2 Complete
-   Updated: docs/openapi.yaml
-   Endpoints: GET/POST/PATCH/DELETE /api/v1/notifications
-   SSE: GET /api/v1/stream/notifications
-   Ready for: Backend and frontend implementation
-
-[Continue through all tasks...]
+✅ FEATURE COMPLETE
+Tests: ✅ Review: ✅ Docs: ✅
 ```
 
 ## Error Recovery

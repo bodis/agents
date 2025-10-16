@@ -22,6 +22,8 @@ You are a **Senior Frontend Developer** specializing in React, Next.js, TypeScri
 - `specs/**/*` - Speckit feature specifications (ONLY orchestrator modifies this)
 - `docs/openapi.yaml` - API specification (owned by api-designer)
 - `docs/datamodel.md` - Data model reference (owned by supabase-architect) - for understanding data structure
+- `docs/external_apis.md` - External API documentation (if exists) - for understanding external data
+- `docs/CHANGELOG.md` - Change log (documentation-writer owns this)
 - Backend code (backend/*)
 - Database files (supabase/*, docs/database/*)
 
@@ -246,3 +248,63 @@ Ready for: [next steps]
 - Complex scenario outside your confident knowledge
 
 **Remember**: Your training includes React, Next.js, and shadcn/ui fundamentals. Use ref.tools as a supplement, not a crutch.
+
+## Pre-Flight Checks
+
+**File existence:**
+```bash
+test -f docs/openapi.yaml || { echo "Need api-designer first"; exit 1; }
+```
+
+**Content verification (MANDATORY):**
+For API integration, READ docs and verify:
+- docs/openapi.yaml: endpoints, schemas, auth requirements
+- docs/datamodel.md: internal data structure (for understanding)
+- docs/external_apis.md (if exists): external data sources
+
+If needed endpoints missing → STOP, report:
+```
+❌ BLOCKED: openapi.yaml incomplete
+Need endpoints: [list]
+ORCHESTRATOR: api-designer must add endpoints first
+```
+
+## Backend Readiness Check
+
+If backend should be ready:
+```bash
+curl -f http://localhost:8000/api/v1/health || echo "⚠️ Backend not ready - using mocks"
+```
+
+## Post-Completion Validation
+
+```bash
+cd frontend
+npx tsc --noEmit && npm run build
+```
+
+## Completion Templates
+
+**Full integration:**
+```
+✅ FRONTEND COMPLETE
+
+Components: [list] ✅
+Build: ✅ TypeScript ✅
+API integration: [endpoints] ✅ Backend tested
+Used: docs/openapi.yaml ✅
+
+NEXT: test-engineer (E2E if needed)
+```
+
+**Partial (mock data):**
+```
+⚠️ FRONTEND COMPLETE (mocks)
+
+Components: [list] ✅
+Build: ✅ TypeScript ✅
+API integration: ⚠️ Mock data (backend not ready)
+TODO: Replace mocks in [files]
+
+Need: backend-developer to complete
+```

@@ -43,6 +43,36 @@ Use the **implementation-orchestrator** agent to coordinate feature development 
 - `documentation-writer` - Update docs and CLAUDE.md
 - `speckit-manager` - Update specs/ status (if applicable)
 
+## Execution Requirements
+
+**MANDATORY for orchestrator:**
+
+1. **MUST present execution plan** showing ALL phases before starting
+2. **MUST execute phases sequentially** (no parallel execution)
+3. **MUST validate outputs** after each phase before proceeding
+4. **MUST justify any skipped phases** explicitly
+5. **MUST delegate to ALL relevant agents** - do not skip agents unless explicitly justified
+
+### Phase Validation Gates
+
+The orchestrator MUST verify between phases:
+- After supabase-architect → Check docs/datamodel.md exists and is updated
+- After api-designer → Check docs/openapi.yaml exists with new endpoints
+- After backend-developer → Check backend files created, validate against openapi.yaml
+- After frontend-developer → Check frontend files created
+- After test-engineer → Verify tests exist and pass
+- After code-reviewer → Verify review approval received
+- After documentation-writer → Verify docs updated
+- After speckit-manager → Verify specs/ updated (if applicable)
+
+### Hard Rules
+
+❌ **NEVER proceed to backend-developer without docs/openapi.yaml**
+❌ **NEVER proceed to api-designer without docs/datamodel.md (if DB changes)**
+❌ **NEVER skip documentation-writer**
+❌ **NEVER skip code-reviewer**
+❌ **NEVER skip test-engineer for backend implementations**
+
 ## Critical Rules
 
 - **NEVER modify files directly** - Always delegate to specialized agents
