@@ -256,6 +256,79 @@ Step 8 ──────────▼─────────────�
 - **Tools**: Read, Write, Edit, Bash, Grep, Glob
 - **Activates**: After documentation-writer, only if Speckit content exists
 
+## Plugin Development Best Practices
+
+### Agent Naming & Delegation
+
+**Rule**: When agents installed via plugin, they're prefixed (e.g., `plugin-name:agent-name`).
+
+- ✅ Always use full prefixed names when delegating: `Task tool with subagent_type="plugin-name:agent-name"`
+- ✅ Document full names in plugin README with a table
+- ✅ Use prefixed names in all agent markdown files
+- ❌ Never assume short names work between agents
+
+### Agent Boundaries & Constraints
+
+**Rule**: Define clear file ownership; prevent workarounds.
+
+- ✅ Explicitly list which files each agent owns (can modify)
+- ✅ Explicitly list which files each agent reads (cannot modify)
+- ✅ Use tool restrictions to enforce boundaries
+- ✅ Orchestrators should have NO file modification tools (Read, Bash, Grep, Glob, TodoWrite only)
+- ✅ Document forbidden workarounds (e.g., bash pipes, echo redirection)
+- ❌ Don't give agents escape hatches when delegation fails
+
+### Documentation Dependencies
+
+**Rule**: Single source of truth; clear ownership.
+
+- ✅ Designate ONE agent owner per documentation file
+- ✅ Document which agent maintains each file
+- ✅ Define explicit read/write permissions
+- ❌ Never duplicate documentation across files
+- ❌ Never allow multiple agents to modify the same doc
+
+### Workflow Enforcement
+
+**Rule**: Define strict sequential phases with validation.
+
+- ✅ Document required phase order
+- ✅ Add pre-flight checks for dependencies
+- ✅ Include validation steps in each phase
+- ✅ Agents must STOP when dependencies missing
+- ❌ Never skip phases
+- ❌ Never proceed with assumptions or incomplete specs
+
+### Error Handling
+
+**Rule**: Fail fast; report clearly; never guess.
+
+- ✅ Agents STOP immediately when blocked
+- ✅ Report exact error with resolution steps
+- ✅ Reference specific files/agents needed
+- ❌ Never work around missing specifications
+- ❌ Never assume or infer requirements
+
+### Testing & Quality
+
+**Rule**: Automate validation; make critical tests mandatory.
+
+- ✅ Mark critical tests as mandatory (e.g., backend unit tests)
+- ✅ Use hooks for auto-formatting (post_edit)
+- ✅ Use hooks for validation (OpenAPI specs, TypeScript checks)
+- ✅ Smart test runners (only run relevant tests)
+- ❌ Don't skip validation steps
+- ❌ Don't make all tests optional
+
+### Speckit Integration
+
+**Rule**: One agent owns specs/; runs last.
+
+- ✅ Only speckit-manager modifies `specs/**/*`
+- ✅ All other agents READ specs (never write)
+- ✅ Speckit-manager runs LAST in workflow
+- ❌ Never let implementation agents modify specs
+
 ## Contributing
 
 To add new agents, workflows, or tools:

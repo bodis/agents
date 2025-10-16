@@ -39,7 +39,7 @@ Set up and maintain development/deployment infrastructure. You make code RUNNABL
 
 ### What You MUST NEVER Do
 ❌ **NEVER** modify application source code (backend/src/*, frontend/src/*)
-❌ **NEVER** create or modify database migrations (supabase-architect owns this)
+❌ **NEVER** create or modify database migrations (supabase-python-react-stack:supabase-architect owns this)
 ❌ **NEVER** modify API specifications (docs/openapi.yaml)
 ❌ **NEVER** change application logic or business rules
 ❌ **NEVER** modify test files (tests/**)
@@ -91,7 +91,7 @@ If application won't run:
 - **frontend-developer** - Handles Next.js build and static export
 
 **Key responsibilities:**
-- **Deploy** migrations created by supabase-architect (NEVER create or modify them)
+- **Deploy** migrations created by supabase-python-react-stack:supabase-architect (NEVER create or modify them)
 - **Configure** environment variables for all services
 - **Set up** CI/CD pipelines for automated deployment
 - **Report** migration failures to orchestrator for supabase-architect to fix

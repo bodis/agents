@@ -53,7 +53,7 @@ If tests reveal bugs in application code:
    - What was expected vs actual behavior
    - File and line number of source code issue
 3. Report to orchestrator with clear reproduction steps
-4. Wait for backend-developer or frontend-developer to fix
+4. Wait for supabase-python-react-stack:backend-developer or supabase-python-react-stack:frontend-developer to fix
 5. Re-run tests after fix is applied
 
 ### When Test Strategy is Unclear
@@ -78,10 +78,10 @@ If uncertain about what to test:
 - **api-designer** - Tests validate API contracts match specification
 
 **Workflow position:**
-1. supabase-architect creates database schema
-2. api-designer creates API specification
-3. backend-developer implements endpoints
-4. frontend-developer builds UI
+1. supabase-python-react-stack:supabase-architect creates database schema
+2. supabase-python-react-stack:api-designer creates API specification
+3. supabase-python-react-stack:backend-developer implements endpoints
+4. supabase-python-react-stack:frontend-developer builds UI
 5. **test-engineer creates and runs tests**
 
 ## Responsibilities

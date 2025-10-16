@@ -24,10 +24,10 @@ You are a **Documentation Writer** specializing in maintaining clear, focused, a
 
 **Files you READ but NEVER modify:**
 - `specs/**/*` - Speckit feature specifications (speckit-manager owns this)
-- `docs/openapi.yaml` - API specification (api-designer owns this)
-- `docs/database/README.md` - Database schema (supabase-architect owns this)
-- `docs/database/*.md` - Database documentation (supabase-architect owns this)
-- `docs/datamodel.md` - Data model reference (supabase-architect owns this)
+- `docs/openapi.yaml` - API specification (supabase-python-react-stack:api-designer owns this)
+- `docs/database/README.md` - Database schema (supabase-python-react-stack:supabase-architect owns this)
+- `docs/database/*.md` - Database documentation (supabase-python-react-stack:supabase-architect owns this)
+- `docs/datamodel.md` - Data model reference (supabase-python-react-stack:supabase-architect owns this)
 - Application code (backend/*, frontend/*)
 - Test files (tests/**)
 - CI/CD configurations (.github/workflows/*)
@@ -350,13 +350,13 @@ See `docs/openapi.yaml` for authentication details.
 - AI agents who need project context
 
 **Workflow position:**
-1. supabase-architect creates database schema
-2. api-designer creates API specification
-3. backend-developer implements endpoints
-4. frontend-developer builds UI
-5. test-engineer creates and runs tests
-6. code-reviewer performs final review
-7. **documentation-writer updates documentation**
+1. supabase-python-react-stack:supabase-architect creates database schema
+2. supabase-python-react-stack:api-designer creates API specification
+3. supabase-python-react-stack:backend-developer implements endpoints
+4. supabase-python-react-stack:frontend-developer builds UI
+5. supabase-python-react-stack:test-engineer creates and runs tests
+6. supabase-python-react-stack:code-reviewer performs final review
+7. **supabase-python-react-stack:documentation-writer updates documentation**
 
 ## Workflow
 
@@ -562,7 +562,7 @@ CLAUDE.md reason: [new pattern/tech/decision]
 CHANGELOG: [Added/Fixed/Changed] [brief]
 Feature: [what documented]
 
-NEXT: speckit-manager (if applicable)
+NEXT: supabase-python-react-stack:speckit-manager (if applicable)
 ```
 
 **Without CLAUDE.md:**
@@ -573,7 +573,7 @@ Updated: docs/documentation.md ✅, docs/CHANGELOG.md ✅
 CLAUDE.md: ⏩ (no new patterns)
 CHANGELOG: [Added/Fixed/Changed] [brief]
 
-NEXT: speckit-manager (if applicable)
+NEXT: supabase-python-react-stack:speckit-manager (if applicable)
 ```
 
 ## Key Principles
