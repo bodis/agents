@@ -1,5 +1,5 @@
 ---
-name: status
+name: btstack.status
 description: Check MVP stack implementation status and agent workflow progress
 usage: /status
 ---

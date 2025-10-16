@@ -1,5 +1,5 @@
 ---
-name: review-plan
+name: btstack.review-plan
 description: Review Speckit plan for compatibility with MVP stack agents and tech stack
 usage: /review-plan [feature-number]
 ---
