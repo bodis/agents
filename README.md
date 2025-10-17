@@ -176,7 +176,8 @@ Step 8 ──────────▼─────────────�
 - **Role**: Workflow coordinator and task delegator
 - **Capabilities**: Plans execution, sequences tasks, delegates to specialized agents
 - **Critical**: Cannot modify any files - only coordinates and delegates
-- **Tools**: Read, Bash, Grep, Glob, TodoWrite
+- **Tools**: Read, Bash, Grep, Glob, TodoWrite, Task
+- **⚠️ Must Have Task Tool**: Without the Task tool, this agent cannot delegate to other agents
 - **Activates**: When implementing complete features or multi-step tasks
 
 ### Database Layer
@@ -275,8 +276,20 @@ Step 8 ──────────▼─────────────�
 - ✅ Explicitly list which files each agent reads (cannot modify)
 - ✅ Use tool restrictions to enforce boundaries
 - ✅ Orchestrators should have NO file modification tools (Read, Bash, Grep, Glob, TodoWrite only)
+- ✅ **CRITICAL**: Orchestrators MUST have the Task tool to delegate to other agents
 - ✅ Document forbidden workarounds (e.g., bash pipes, echo redirection)
 - ❌ Don't give agents escape hatches when delegation fails
+
+**⚠️ Common Orchestrator Pitfall:**
+```yaml
+# ❌ WRONG - Missing Task tool
+tools: Read, Bash, Grep, Glob, TodoWrite
+
+# ✅ CORRECT - Includes Task tool for delegation
+tools: Read, Bash, Grep, Glob, TodoWrite, Task
+```
+
+Without the Task tool, orchestrators cannot delegate to specialized agents, rendering them unable to coordinate workflows despite their system prompts instructing them to do so.
 
 ### Documentation Dependencies
 

@@ -2,7 +2,7 @@
 name: implementation-orchestrator
 description: Coordinates sequential feature implementation by delegating tasks to specialized agents. Cannot modify any files directly, only delegates to other agents. Understands API-first development workflow and manages task sequencing. Activates when implementing complete features or multi-step tasks.
 model: sonnet
-tools: Read, Bash, Grep, Glob, TodoWrite
+tools: Read, Bash, Grep, Glob, TodoWrite, Task
 color: Red
 ---
 
