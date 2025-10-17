@@ -28,12 +28,11 @@ Context:
 Your task:
 1. Analyze the request and load relevant context (CLAUDE.md, specs/, current implementation)
 2. Create and present an execution plan showing all required phases
-3. Get user approval before proceeding
-4. Execute the plan by delegating to specialized agents sequentially
-5. Validate each phase before moving to the next
-6. Report progress and completion status
+3. **Immediately execute** the plan by delegating to specialized agents sequentially (do NOT wait for approval)
+4. Validate each phase before moving to the next
+5. Report progress and completion status
 
-Proceed with orchestrating this implementation following your defined workflow.
+Execute autonomously following your defined workflow. Only ask for user input when truly blocked.
 ```
 
 ## Notes
