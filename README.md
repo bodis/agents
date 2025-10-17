@@ -174,10 +174,10 @@ Step 8 ──────────▼─────────────�
 
 **implementation-orchestrator**
 - **Role**: Workflow coordinator and task delegator
-- **Capabilities**: Plans execution, sequences tasks, delegates to specialized agents
+- **Capabilities**: Plans execution, sequences tasks, delegates to specialized agents via natural language
 - **Critical**: Cannot modify any files - only coordinates and delegates
-- **Tools**: Read, Bash, Grep, Glob, TodoWrite, Task
-- **⚠️ Must Have Task Tool**: Without the Task tool, this agent cannot delegate to other agents
+- **Tools**: Read, Bash, Grep, Glob, TodoWrite
+- **Delegation**: Uses explicit language to route work to specialized agents (framework handles invocation)
 - **Activates**: When implementing complete features or multi-step tasks
 
 ### Database Layer
@@ -263,9 +263,10 @@ Step 8 ──────────▼─────────────�
 
 **Rule**: When agents installed via plugin, they're prefixed (e.g., `plugin-name:agent-name`).
 
-- ✅ Always use full prefixed names when delegating: `Task tool with subagent_type="plugin-name:agent-name"`
+- ✅ Always use full prefixed names when delegating: "Delegating to plugin-name:agent-name"
 - ✅ Document full names in plugin README with a table
 - ✅ Use prefixed names in all agent markdown files
+- ✅ Use explicit, clear language for delegation (framework handles routing)
 - ❌ Never assume short names work between agents
 
 ### Agent Boundaries & Constraints
@@ -276,20 +277,20 @@ Step 8 ──────────▼─────────────�
 - ✅ Explicitly list which files each agent reads (cannot modify)
 - ✅ Use tool restrictions to enforce boundaries
 - ✅ Orchestrators should have NO file modification tools (Read, Bash, Grep, Glob, TodoWrite only)
-- ✅ **CRITICAL**: Orchestrators MUST have the Task tool to delegate to other agents
+- ✅ **CRITICAL**: Orchestrators delegate via explicit natural language (framework handles routing)
 - ✅ Document forbidden workarounds (e.g., bash pipes, echo redirection)
 - ❌ Don't give agents escape hatches when delegation fails
 
 **⚠️ Common Orchestrator Pitfall:**
 ```yaml
-# ❌ WRONG - Missing Task tool
-tools: Read, Bash, Grep, Glob, TodoWrite
+# ❌ WRONG - Has file modification tools
+tools: Read, Write, Edit, Bash, Grep, Glob
 
-# ✅ CORRECT - Includes Task tool for delegation
-tools: Read, Bash, Grep, Glob, TodoWrite, Task
+# ✅ CORRECT - Only coordination tools, delegates via natural language
+tools: Read, Bash, Grep, Glob, TodoWrite
 ```
 
-Without the Task tool, orchestrators cannot delegate to specialized agents, rendering them unable to coordinate workflows despite their system prompts instructing them to do so.
+Orchestrators delegate by explicitly stating which agent should handle which task. The Claude Code framework automatically routes the work to the appropriate specialized agent.
 
 ### Documentation Dependencies
 

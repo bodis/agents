@@ -28,16 +28,16 @@ All agents in this plugin are automatically prefixed with `supabase-python-react
 
 ### Correct Usage
 
-When using the Task tool to delegate work to agents, **ALWAYS use the full prefixed name**:
+When delegating work to agents, **ALWAYS reference them by their full prefixed name**:
 
 ✅ **Correct**:
 ```markdown
-Task tool with subagent_type="supabase-python-react-stack:backend-developer"
+Delegating to supabase-python-react-stack:backend-developer
 ```
 
 ❌ **Incorrect**:
 ```markdown
-Task tool with subagent_type="backend-developer"
+Delegating to backend-developer
 ```
 
 ### Agent Names
@@ -208,7 +208,7 @@ Critical documentation files that agents depend on:
 
 **Decision**: Use full prefixed agent names in all delegations.
 
-**Rationale**: Claude Code installs plugin agents with namespace prefix to avoid naming conflicts. Unprefixed names cause Task tool failures.
+**Rationale**: Claude Code installs plugin agents with namespace prefix to avoid naming conflicts. Unprefixed names cause delegation failures.
 
 **Impact**:
 - All agent markdown files updated with prefixed references
@@ -223,7 +223,7 @@ Critical documentation files that agents depend on:
 
 **Impact**:
 - Orchestrator can only READ files and delegate work
-- If Task tool fails, must STOP and report (no workarounds)
+- If delegation fails, must STOP and report (no workarounds)
 - Forbidden from using bash pipes/redirection for file creation
 
 ### 5. Auto-Formatting Hooks (commit c9eb860)

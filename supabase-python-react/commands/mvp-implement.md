@@ -6,18 +6,17 @@ argument-hint: [feature-id] or description
 
 **CRITICAL: You MUST immediately delegate this entire task to the implementation-orchestrator agent.**
 
-**DO NOT attempt to implement, plan, or coordinate this yourself. Your ONLY job is to invoke the Task tool with subagent_type="supabase-python-react-stack:implementation-orchestrator" and pass the user's request.**
+**DO NOT attempt to implement, plan, or coordinate this yourself. Your ONLY job is to explicitly state that you are delegating to the implementation-orchestrator agent.**
 
 ## Delegation Instructions
 
-Invoke the Task tool with:
-- **subagent_type**: `"supabase-python-react-stack:implementation-orchestrator"`
-- **description**: `"Implement feature: $ARGUMENTS"`
-- **prompt**: Use the template below
-
-### Prompt Template
+Clearly state in your response that you are delegating to the implementation-orchestrator agent with the user's request:
 
 ```
+I'm delegating this implementation to the supabase-python-react-stack:implementation-orchestrator agent.
+
+**Delegating to supabase-python-react-stack:implementation-orchestrator:**
+
 The user wants to implement: $ARGUMENTS
 
 Context:
