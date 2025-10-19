@@ -53,7 +53,6 @@ Delegating to backend-developer
 | `devops-engineer` | `supabase-python-react-stack:devops-engineer` |
 | `documentation-writer` | `supabase-python-react-stack:documentation-writer` |
 | `speckit-manager` | `supabase-python-react-stack:speckit-manager` |
-| `implementation-orchestrator` | `supabase-python-react-stack:implementation-orchestrator` |
 
 ## Architecture & Workflow
 
@@ -174,15 +173,6 @@ Critical documentation files that agents depend on:
 - Cannot modify anything outside specs/ directory
 - **Runs LAST** after documentation-writer
 
-### Orchestration Layer
-
-**supabase-python-react-stack:implementation-orchestrator**
-- Coordinates sequential feature implementation
-- Delegates tasks to specialized agents
-- Cannot modify files directly (only delegates)
-- Enforces API-first workflow
-- Tracks progress and validates each phase
-
 ## Key Architectural Decisions
 
 ### 1. Speckit Content Protection (2025-10-15, commit c0a9b5c)
@@ -215,16 +205,31 @@ Critical documentation files that agents depend on:
 - Orchestrator enforced to use full names
 - Prevents delegation failures and improper workarounds
 
-### 4. Orchestrator Constraints (2025-10-16)
+### 4. Command-Based Orchestration Pattern (2025-10-19)
 
-**Decision**: Implementation orchestrator has NO file modification tools.
+**Decision**: Use slash commands (not subagents) to transform the main agent into an orchestrator role.
 
-**Rationale**: Prevents orchestrator from implementing code itself when delegation fails. Forces proper error reporting.
+**Rationale**: Claude Code's delegation architecture only allows the main (default) agent to delegate to subagents. Subagents cannot delegate to other subagents. Attempting multi-level delegation results in unreliable behavior where the subagent returns control to the main agent with unclear delegation requests.
+
+**Background**:
+- Initial implementation used `implementation-orchestrator` as a subagent
+- The orchestrator subagent tried to delegate to specialized agents (supabase-architect, backend-developer, etc.)
+- This multi-level delegation pattern did not work consistently
+- The orchestrator would "describe" what should be delegated but couldn't actually invoke other agents
+- Success rate was <50% with unpredictable workarounds attempted
+
+**Solution**:
+- Removed `implementation-orchestrator` as a subagent entirely
+- Created `/mvp-implement` command that transforms the main agent into the orchestrator role
+- Main agent, now acting as orchestrator, uses Task tool to delegate to specialized subagents
+- This single-level delegation (main → subagents) works reliably
 
 **Impact**:
-- Orchestrator can only READ files and delegate work
-- If delegation fails, must STOP and report (no workarounds)
-- Forbidden from using bash pipes/redirection for file creation
+- `/mvp-implement` command contains full orchestrator prompt (previously in agent markdown)
+- Main agent reads the command and adopts orchestrator responsibilities
+- All delegation flows: Main Agent → Task tool → Specialized Subagent
+- Removed intermediate orchestrator subagent layer
+- Delegation success rate improved significantly
 
 ### 5. Auto-Formatting Hooks (commit c9eb860)
 
@@ -252,14 +257,58 @@ Critical documentation files that agents depend on:
 
 ## Commands
 
-### /supabase-python-react-stack:mvp-implement [feature-id] or description
-Coordinate feature implementation using implementation-orchestrator agent.
+### /supabase-python-react-stack:mvp-implement [feature-id]
+**Speckit-based feature implementation orchestrator** - coordinates full-stack development of features defined in the `specs/` directory.
+
+This command is **ONLY for Speckit-managed features**. It reads feature specifications from `specs/`, follows strict API-first workflow (Database → API → Backend → Frontend → Tests → Review → Docs → Speckit Status), and updates Speckit task status upon completion.
 
 **Usage**:
 ```
 /supabase-python-react-stack:mvp-implement 001-user-authentication
-/supabase-python-react-stack:mvp-implement Add user profile management
+/supabase-python-react-stack:mvp-implement user-profile-feature
 ```
+
+**How it works**:
+1. Command transforms main agent into orchestrator role
+2. Main agent reads Speckit spec from `specs/` directory
+3. Extracts requirements, tasks, and acceptance criteria
+4. Creates 8-phase execution plan (all phases required for Speckit features)
+5. Uses Task tool to delegate to specialized subagents sequentially
+6. Validates each phase against Speckit acceptance criteria
+7. **Always completes Phase 8**: Updates Speckit status via speckit-manager
+8. Reports completion with summary
+
+**When to use**: Feature is defined in Speckit specs/ directory
+**When NOT to use**: Ad-hoc requests, bug fixes, refactoring - use `/mvp-plan` instead
+
+### /supabase-python-react-stack:mvp-plan [task description]
+**Ad-hoc task orchestrator** - coordinates development work for user requests that are NOT managed in Speckit.
+
+This command provides flexible task orchestration without Speckit integration. Analyzes the request, determines the best approach, and delegates to appropriate agents based on task type (bug fix, refactoring, optimization, new feature, etc.). Does NOT update specs/ directory.
+
+**Usage**:
+```
+/supabase-python-react-stack:mvp-plan Fix authentication token expiration bug
+/supabase-python-react-stack:mvp-plan Refactor payment processing module
+/supabase-python-react-stack:mvp-plan Optimize dashboard loading performance
+/supabase-python-react-stack:mvp-plan Add email validation to signup form
+```
+
+**How it works**:
+1. Main agent analyzes the user's request
+2. Reads project context (CLAUDE.md, relevant code)
+3. Determines which agents are needed based on task type
+4. Creates flexible delegation plan (adapts to task, not rigid workflow)
+5. Uses Task tool to delegate sequentially
+6. Does NOT involve speckit-manager (no specs/ updates)
+7. Validates and reports completion
+
+**When to use**: Bug fixes, refactoring, optimizations, ad-hoc features, improvements
+**When NOT to use**: Features defined in Speckit - use `/mvp-implement` instead
+
+**Key difference from mvp-implement**:
+- **mvp-implement**: Speckit specs → Rigid 8-phase workflow → Updates specs/
+- **mvp-plan**: User request → Flexible workflow → No specs/ involvement
 
 ### /supabase-python-react-stack:mvp-review-plan
 Review Speckit plan for compatibility with MVP stack agents and tech stack.
@@ -317,45 +366,22 @@ Check MVP stack implementation status and agent workflow progress.
 - **GitHub Actions** for CI/CD
 - **GCP** for cloud deployment
 
-## Best Practices for Creating New Plugins
+## Plugin Architecture
 
-Based on lessons learned from this plugin:
+This plugin uses a **command-based orchestration** pattern:
 
-### 1. Agent Naming
-- ✅ Document the full prefixed name for all agents
-- ✅ Use prefixes in all agent markdown files
-- ✅ Include naming convention in README
-- ❌ Don't assume agents can reference each other by short names
+- `/mvp-implement` and `/mvp-plan` commands transform the main agent into an orchestrator role
+- The main agent (acting as orchestrator) delegates to specialized subagents via Task tool
+- Subagents are specialists that perform specific work and don't delegate further
 
-### 2. Agent Constraints
-- ✅ Clearly define which agents can modify which files
-- ✅ Use tool restrictions to enforce boundaries
-- ✅ Explicitly forbid workarounds when delegation fails
-- ❌ Don't give orchestrators file modification tools
+**Why commands instead of an orchestrator subagent?**
+Claude Code's delegation model only allows the main agent to delegate to subagents. Subagents cannot reliably delegate to other subagents. By using commands, we transform the main agent itself into the orchestrator, giving it full delegation capability.
 
-### 3. Documentation
-- ✅ Maintain clear documentation dependencies
-- ✅ Define single source of truth for each concept
-- ✅ Document which agent maintains each file
-- ❌ Don't allow duplication of documentation
+**Version history:**
+- **v0.1.0**: Used `implementation-orchestrator` subagent → unreliable delegation (<50% success)
+- **v0.2.0**: Migrated to `/mvp-implement` command → reliable delegation (current)
 
-### 4. Workflow Enforcement
-- ✅ Define strict sequential phases
-- ✅ Add pre-flight checks for dependencies
-- ✅ Include validation steps in workflow
-- ❌ Don't allow agents to skip required phases
-
-### 5. Testing & Quality
-- ✅ Make backend tests mandatory
-- ✅ Use smart test runners to save time
-- ✅ Auto-format on save
-- ❌ Don't skip validation steps
-
-### 6. Error Handling
-- ✅ Agents must STOP when dependencies missing
-- ✅ Report exact errors with clear resolution steps
-- ✅ Never proceed with assumptions
-- ❌ Don't work around missing specifications
+For general plugin development best practices and delegation architecture details, see the [main repository README](../README.md#understanding-claude-codes-delegation-architecture).
 
 ## Troubleshooting
 

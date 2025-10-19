@@ -257,6 +257,105 @@ Step 8 ──────────▼─────────────�
 - **Tools**: Read, Write, Edit, Bash, Grep, Glob
 - **Activates**: After documentation-writer, only if Speckit content exists
 
+## Understanding Claude Code's Delegation Architecture
+
+**CRITICAL for plugin developers**: Claude Code has a specific delegation model that fundamentally affects how you structure multi-agent workflows.
+
+### How Delegation Actually Works
+
+Claude Code uses a **single-level delegation model**:
+
+```
+Main Agent (default agent)
+    ↓ can delegate via Task tool
+Specialized Subagents (plugin agents)
+    ✗ CANNOT delegate to other subagents
+```
+
+**This is the most important architectural constraint to understand when building plugins.**
+
+### What Works ✅
+
+**Main agent delegates to subagents:**
+```
+Main Agent → Task tool → supabase-architect subagent ✓
+Main Agent → Task tool → backend-developer subagent ✓
+```
+
+**Slash commands transform main agent into a role:**
+```
+User: /mvp-implement feature-x
+Main Agent (now acting as orchestrator):
+  → Task tool → supabase-architect ✓
+  → Task tool → backend-developer ✓
+  → Task tool → frontend-developer ✓
+```
+
+### What Doesn't Work ❌
+
+**Subagents trying to delegate to other subagents:**
+```
+Main Agent → orchestrator subagent
+  → orchestrator tries: Task tool → supabase-architect ✗
+  → orchestrator tries: Task tool → backend-developer ✗
+```
+
+**What actually happens**: The orchestrator subagent can describe what should be delegated and may return control to the main agent, but it cannot directly invoke other subagents. Success rate is inconsistent (<50%) with unpredictable behavior.
+
+### Architectural Implications
+
+**For plugin authors:**
+
+1. **Use commands, not subagents, for orchestration roles**
+   - Put orchestration logic in slash commands (`commands/*.md`)
+   - Commands transform the main agent into the orchestrator
+   - Main agent then has full Task tool delegation capability
+
+2. **Subagents should be specialists, not coordinators**
+   - Each subagent does one specific type of work
+   - Subagents should NOT try to delegate to other subagents
+   - If coordination is needed, use a command to elevate main agent
+
+3. **Think hierarchically but execute flatly**
+   - Design: Orchestrator → Database → API → Backend → Frontend
+   - Implementation: Command makes main agent the orchestrator
+   - Execution: Main → supabase-architect, Main → api-designer, Main → backend-developer
+
+### Migration Pattern: Subagent to Command
+
+If you have an orchestrator subagent that needs to delegate:
+
+**Before (doesn't work reliably)**:
+```
+agents/orchestrator.md:
+  - Tries to delegate to other agents
+  - Describes delegation but can't execute
+```
+
+**After (works reliably)**:
+```
+commands/implement.md:
+  - Contains all orchestrator instructions
+  - Main agent adopts this role when command invoked
+  - Main agent successfully delegates via Task tool
+```
+
+**Migration steps**:
+1. Copy orchestrator agent's markdown content
+2. Create new command file (`commands/your-command.md`)
+3. Paste content and adjust to command format
+4. Remove orchestrator agent file
+5. Update documentation
+
+### Real-World Example
+
+The `supabase-python-react-stack` plugin learned this lesson:
+
+- **v0.1.0**: Had `implementation-orchestrator` as a subagent → unreliable delegation
+- **v0.2.0**: Moved orchestration to `/mvp-implement` command → reliable delegation
+
+**Key insight**: Commands extend the main agent's capabilities; subagents are specialists that the main agent coordinates.
+
 ## Plugin Development Best Practices
 
 ### Agent Naming & Delegation
@@ -269,6 +368,18 @@ Step 8 ──────────▼─────────────�
 - ✅ Use explicit, clear language for delegation (framework handles routing)
 - ❌ Never assume short names work between agents
 
+### Delegation Architecture (Most Important!)
+
+**Rule**: Use commands for orchestration, subagents for specialization.
+
+- ✅ Use commands (not subagents) for orchestration roles
+- ✅ Commands should transform main agent into coordinator role
+- ✅ Subagents should be specialists that don't delegate further
+- ✅ Use single-level delegation: Main → Subagents (via Task tool)
+- ❌ Don't create orchestrator subagents that try to delegate to other subagents
+
+**Why this matters**: Subagents cannot reliably delegate to other subagents in Claude Code. Multi-level delegation fails inconsistently. Always use commands to elevate the main agent into an orchestrator role.
+
 ### Agent Boundaries & Constraints
 
 **Rule**: Define clear file ownership; prevent workarounds.
@@ -276,21 +387,10 @@ Step 8 ──────────▼─────────────�
 - ✅ Explicitly list which files each agent owns (can modify)
 - ✅ Explicitly list which files each agent reads (cannot modify)
 - ✅ Use tool restrictions to enforce boundaries
-- ✅ Orchestrators should have NO file modification tools (Read, Bash, Grep, Glob, TodoWrite only)
-- ✅ **CRITICAL**: Orchestrators delegate via explicit natural language (framework handles routing)
+- ✅ Commands that create orchestrator roles should avoid giving file modification tools
 - ✅ Document forbidden workarounds (e.g., bash pipes, echo redirection)
+- ❌ Don't give coordination roles file modification tools
 - ❌ Don't give agents escape hatches when delegation fails
-
-**⚠️ Common Orchestrator Pitfall:**
-```yaml
-# ❌ WRONG - Has file modification tools
-tools: Read, Write, Edit, Bash, Grep, Glob
-
-# ✅ CORRECT - Only coordination tools, delegates via natural language
-tools: Read, Bash, Grep, Glob, TodoWrite
-```
-
-Orchestrators delegate by explicitly stating which agent should handle which task. The Claude Code framework automatically routes the work to the appropriate specialized agent.
 
 ### Documentation Dependencies
 
