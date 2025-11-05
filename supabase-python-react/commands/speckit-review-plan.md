@@ -1,23 +1,23 @@
 ---
-name: btstack.review-plan
-description: Review Speckit plan for compatibility with MVP stack agents and tech stack
-usage: /review-plan [feature-number]
+name: speckit-review-plan
+description: Review Speckit plan for compatibility with stack agents and tech stack
+usage: /speckit-review-plan [feature-number]
 ---
 
-# Review Plan Command
+# Speckit Review Plan Command
 
-Review a Speckit implementation plan to ensure it can be executed by our MVP stack agents and aligns with our tech stack.
+Review a Speckit implementation plan to ensure it can be executed by our stack agents and aligns with our tech stack.
 
 ## Usage
 
 ```bash
-/review-plan 003
+/speckit-review-plan 003
 ```
 
 ## What It Does
 
 ```
-Please review the implementation plan at specs/$ARGUMENTS-*/plan.md for compatibility with our MVP stack.
+Please review the implementation plan at specs/$ARGUMENTS-*/plan.md for compatibility with our stack.
 
 ## 1. Tech Stack Compatibility Check
 

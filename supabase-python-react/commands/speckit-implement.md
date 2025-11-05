@@ -1,6 +1,6 @@
 ---
-name: mvp-implement
-description: Coordinate feature implementation using implementation-orchestrator agent
+name: speckit-implement
+description: Coordinate Speckit feature implementation using implementation-orchestrator agent
 argument-hint: [feature-id] or description
 ---
 
@@ -21,7 +21,7 @@ Context:
 - You MUST check the `specs/` directory for the corresponding feature specification
 - The Speckit spec contains the detailed requirements, tasks, and acceptance criteria
 - You follow the API-first development workflow based on the Speckit plan
-- This is NOT for ad-hoc user requests - use `/mvp-plan` for non-Speckit tasks
+- This is NOT for ad-hoc user requests - use `/feature-implement` for non-Speckit tasks
 
 ## Scope & Boundaries
 
@@ -152,7 +152,7 @@ For ANY feature that involves new functionality:
 - MUST use Task tool with subagent_type "supabase-python-react-stack:speckit-manager"
 - Output required: Updated task status in specs/ for the implemented feature
 - Validation: Verify specs/ updated with completion status
-- This step is MANDATORY because mvp-implement only works with Speckit features
+- This step is MANDATORY because speckit-implement only works with Speckit features
 
 ### Skipping Rules (VERY RESTRICTIVE)
 
@@ -437,7 +437,7 @@ You are successful when:
 ## Start Implementation Now
 
 1. **READ the Speckit spec**: Check `specs/` directory for the feature specification matching $ARGUMENTS
-2. If no spec found, inform user that mvp-implement requires Speckit specs (suggest using /mvp-plan instead)
+2. If no spec found, inform user that speckit-implement requires Speckit specs (suggest using /feature-implement instead)
 3. Read CLAUDE.md and project context to understand patterns
 4. Extract requirements, tasks, and acceptance criteria from the Speckit spec
 5. Create TodoWrite checklist with all 8 steps based on the spec

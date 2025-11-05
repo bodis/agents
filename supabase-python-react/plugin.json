@@ -1,19 +1,21 @@
 {
     "name": "supabase-python-react-stack",
-    "description": "AI-driven MVP development stack with Speckit integration, sequential agent orchestration, and comprehensive testing",
-    "version": "0.3.0",
+    "description": "AI-driven development stack with Speckit integration, sequential agent orchestration, and comprehensive testing",
+    "version": "0.4.0",
     "category": "development",
     "author": {
     "name": "Tamas Bodis",
     "url": "https://github.com/bodis/agents"
     },
     "license": "MIT",
-    "keywords": ["mvp", "speckit", "fastapi", "react", "supabase", "orchestration"],
+    "keywords": ["speckit", "fastapi", "react", "supabase", "orchestration", "fullstack"],
     "strict": true,
     "commands": [
-    "./commands/mvp-review-plan.md",
-    "./commands/mvp-implement.md",
-    "./commands/speckit-status.md"
+    "./commands/speckit-review-plan.md",
+    "./commands/speckit-implement.md",
+    "./commands/speckit-status.md",
+    "./commands/feature-implement.md",
+    "./commands/bug-investigate.md"
     ],
     "agents": [
     "./agents/supabase-architect.md",

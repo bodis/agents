@@ -1,7 +1,7 @@
 ---
-name: btstack.status
+name: speckit-status
 description: Check MVP stack implementation status and agent workflow progress
-usage: /status
+usage: /speckit-status
 ---
 
 # Status Command
@@ -11,7 +11,7 @@ Check current implementation progress across the MVP stack layers and agent work
 ## Usage
 
 ```bash
-/status
+/speckit-status
 ```
 
 ## What It Does

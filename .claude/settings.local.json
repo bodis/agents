@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git log:*)",
+      "Bash(for file in api-designer.md supabase-architect.md documentation-writer.md test-engineer.md code-reviewer.md devops-engineer.md speckit-manager.md)",
+      "Bash(do)",
+      "Bash(\"$file\")",
+      "Bash(done)",
+      "Bash(for commit in cf4370c a34c149 5250517 bed5feb 7731f54 c0a9b5c dfa5530 1f838a6 8c9149c 00782c1 3b77715)",
+      "Bash(do echo \"=== Commit: $commit ===\" git show $commit:supabase-python-react/agents/implementation-orchestrator.md)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
